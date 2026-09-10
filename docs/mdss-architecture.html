@@ -23,10 +23,10 @@ code{background:#1e293b;color:#7dd3fc;padding:1px 5px;border-radius:4px;font-siz
 </head>
 <body>
 <h1><span class="dot"></span>MDSS — Maintenance Decision Support System</h1>
-<div class="sub">Arsitektur pipeline: data historis → engine analisis → dashboard &amp; deployment · local: /mnt/d/agen/mdss-dashboard · source: github.com/FarhadHabibie/mdss-dashboard</div>
+<div class="sub">Arsitektur pipeline: data historis → engine analisis → dashboard &amp; deployment · local: /mnt/d/Orca-e2pay/orca-1-e2pay/maintenance-project · source: github.com/FarhadHabibie/mdss-dashboard</div>
 
 <div class="card">
-<svg width="1240" height="920" viewBox="0 0 1240 920" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+<svg width="1240" height="860" viewBox="0 0 1240 860" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
   <defs>
     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
       <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
@@ -35,49 +35,37 @@ code{background:#1e293b;color:#7dd3fc;padding:1px 5px;border-radius:4px;font-siz
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
     </marker>
   </defs>
-  <rect width="1240" height="900" fill="url(#grid)"/>
+  <rect width="1240" height="740" fill="url(#grid)"/>
 
   <!-- == LAYER 1: DATA == -->
   <text x="30" y="34" font-size="11" font-weight="600" fill="#fbbf24" letter-spacing="1">DATA HISTORIS · data/*.csv</text>
   <g>
-    <rect x="30" y="48" width="190" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
-    <rect x="30" y="48" width="190" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
+    <rect x="30" y="48" width="230" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+    <rect x="30" y="48" width="230" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
     <text x="46" y="74" font-size="12" font-weight="600" fill="#fde68a">PdM_machines.csv</text>
     <text x="46" y="92" font-size="9" fill="#d6d3d1">machineID · model · age</text>
   </g>
   <g>
-    <rect x="226" y="48" width="190" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
-    <rect x="226" y="48" width="190" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
-    <text x="242" y="74" font-size="12" font-weight="600" fill="#fde68a">PdM_telemetry.csv</text>
-    <text x="242" y="92" font-size="9" fill="#d6d3d1">sensor hourly · 876K baris</text>
+    <rect x="280" y="48" width="230" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+    <rect x="280" y="48" width="230" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
+    <text x="296" y="74" font-size="12" font-weight="600" fill="#fde68a">PdM_failures.csv</text>
+    <text x="296" y="92" font-size="9" fill="#d6d3d1">datetime · machineID · komponen</text>
   </g>
   <g>
-    <rect x="422" y="48" width="190" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
-    <rect x="422" y="48" width="190" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
-    <text x="438" y="74" font-size="12" font-weight="600" fill="#fde68a">PdM_failures.csv</text>
-    <text x="438" y="92" font-size="9" fill="#d6d3d1">datetime · machineID · comp</text>
+    <rect x="530" y="48" width="230" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+    <rect x="530" y="48" width="230" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
+    <text x="546" y="74" font-size="12" font-weight="600" fill="#fde68a">PdM_maint.csv</text>
+    <text x="546" y="92" font-size="9" fill="#d6d3d1">jadwal · komponen · tipe repair</text>
   </g>
   <g>
-    <rect x="618" y="48" width="190" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
-    <rect x="618" y="48" width="190" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
-    <text x="634" y="74" font-size="12" font-weight="600" fill="#fde68a">PdM_errors.csv</text>
-    <text x="634" y="92" font-size="9" fill="#d6d3d1">error log · 5 kode error</text>
+    <rect x="780" y="48" width="230" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+    <rect x="780" y="48" width="230" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
+    <text x="796" y="74" font-size="12" font-weight="600" fill="#fde68a">PdM_cost.csv + engineering</text>
+    <text x="796" y="92" font-size="9" fill="#d6d3d1">biaya repair · durasi · resource</text>
   </g>
   <g>
-    <rect x="814" y="48" width="190" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
-    <rect x="814" y="48" width="190" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
-    <text x="830" y="74" font-size="12" font-weight="600" fill="#fde68a">PdM_maint.csv</text>
-    <text x="830" y="92" font-size="9" fill="#d6d3d1">jadwal · comp · tipe repair</text>
-  </g>
-  <g>
-    <rect x="1010" y="48" width="190" height="62" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
-    <rect x="1010" y="48" width="190" height="62" rx="8" fill="rgba(120,53,15,.3)" stroke="none"/>
-    <text x="1026" y="74" font-size="12" font-weight="600" fill="#fde68a">cost / eng.csv</text>
-    <text x="1026" y="92" font-size="9" fill="#d6d3d1">biaya · durasi · resource</text>
-  </g>
-  <g>
-    <rect x="30" y="130" width="1180" height="40" rx="8" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
-    <text x="46" y="155" font-size="10.5" fill="#cbd5e1">generate_data.py — sintetis 100 mesin (2015, 12 bln) · data_loader.py parse + clean (NaN, tipe, outlier 3σ) · telemetry sensor 4 kanal</text>
+    <rect x="30" y="130" width="980" height="40" rx="8" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="46" y="155" font-size="10.5" fill="#cbd5e1">generate_data.py — sintetis 100 mesin (2015, 12 bln) · data_loader.py parse + clean (NaN, tipe)</text>
   </g>
 
   <!-- arrows data -> engine -->
@@ -86,155 +74,112 @@ code{background:#1e293b;color:#7dd3fc;padding:1px 5px;border-radius:4px;font-siz
   <path d="M 895 170 L 895 200" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- == LAYER 2: ENGINE == -->
-  <text x="30" y="194" font-size="11" font-weight="600" fill="#34d399" letter-spacing="1">ENGINE ANALISIS · src/*.py — 10 modul</text>
+  <text x="30" y="194" font-size="11" font-weight="600" fill="#34d399" letter-spacing="1">ENGINE ANALISIS · src/*.py</text>
   <g>
-    <rect x="30" y="200" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="30" y="200" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
+    <rect x="30" y="200" width="290" height="140" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+    <rect x="30" y="200" width="290" height="140" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
     <text x="46" y="224" font-size="12" font-weight="800" fill="#6ee7b7">metrics.py</text>
     <text x="46" y="244" font-size="9.5" fill="#a7f3d0">• MTBF — jam operasi antar failure</text>
     <text x="46" y="262" font-size="9.5" fill="#a7f3d0">• MTTR — jam rata-rata repair</text>
     <text x="46" y="280" font-size="9.5" fill="#a7f3d0">• Availability % = MTBF/(MTBF+MTTR)</text>
     <text x="46" y="298" font-size="9.5" fill="#a7f3d0">• Frekuensi failure/bln · total biaya</text>
-    <text x="46" y="316" font-size="9.5" fill="#a7f3d0">• Maintenance cost per mesin (Jt)</text>
+    <text x="46" y="318" font-size="9.5" fill="#a7f3d0">• Maintenance cost per mesin (Jt)</text>
   </g>
   <g>
-    <rect x="334" y="200" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="334" y="200" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
-    <text x="350" y="224" font-size="12" font-weight="800" fill="#6ee7b7">priority.py</text>
-    <text x="350" y="244" font-size="9.5" fill="#a7f3d0">• Skor 0–100 per mesin (bobot MTBF/</text>
-    <text x="350" y="262" font-size="9.5" fill="#a7f3d0">  MTTR/biaya/frekuensi)</text>
-    <text x="350" y="280" font-size="9.5" fill="#a7f3d0">• URGENT ≥75 · HIGH 50–74 · MEDIUM</text>
-    <text x="350" y="298" font-size="9.5" fill="#a7f3d0">  25–49 · LOW &lt;25</text>
-    <text x="350" y="316" font-size="9.5" fill="#a7f3d0">• Top-10 + filter kategori</text>
+    <rect x="340" y="200" width="290" height="140" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+    <rect x="340" y="200" width="290" height="140" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
+    <text x="356" y="224" font-size="12" font-weight="800" fill="#6ee7b7">priority.py</text>
+    <text x="356" y="244" font-size="9.5" fill="#a7f3d0">• Skor 0–100 per mesin (bobot MTBF/</text>
+    <text x="356" y="262" font-size="9.5" fill="#a7f3d0">  MTTR/biaya/frekuensi)</text>
+    <text x="356" y="280" font-size="9.5" fill="#a7f3d0">• Kategori: URGENT ≥75 · HIGH 50–74</text>
+    <text x="356" y="300" font-size="9.5" fill="#a7f3d0">  MEDIUM 25–49 · LOW &lt;25</text>
+    <text x="356" y="320" font-size="9.5" fill="#a7f3d0">• Top-10 + filter kategori</text>
   </g>
   <g>
-    <rect x="638" y="200" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="638" y="200" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
-    <text x="654" y="224" font-size="12" font-weight="800" fill="#6ee7b7">decision.py</text>
-    <text x="654" y="244" font-size="9.5" fill="#a7f3d0">• Cost ratio: repair vs replacement</text>
-    <text x="654" y="262" font-size="9.5" fill="#a7f3d0">• Bobot: frekuensi · umur · criticality</text>
-    <text x="654" y="280" font-size="9.5" fill="#a7f3d0">• Output: REPAIR / REVIEW / REPLACE</text>
-    <text x="654" y="298" font-size="9.5" fill="#a7f3d0">• Total score + ROI (tahun)</text>
+    <rect x="650" y="200" width="290" height="140" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+    <rect x="650" y="200" width="290" height="140" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
+    <text x="666" y="224" font-size="12" font-weight="800" fill="#6ee7b7">decision.py</text>
+    <text x="666" y="244" font-size="9.5" fill="#a7f3d0">• Cost ratio: biaya repair vs replacement</text>
+    <text x="666" y="262" font-size="9.5" fill="#a7f3d0">• Bobot: frekuensi · umur · criticality</text>
+    <text x="666" y="282" font-size="9.5" fill="#a7f3d0">• Output: REPAIR / REVIEW / REPLACE</text>
+    <text x="666" y="302" font-size="9.5" fill="#a7f3d0">• Total score + keputusan akhir</text>
   </g>
   <g>
-    <rect x="942" y="200" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="942" y="200" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
-    <text x="958" y="224" font-size="12" font-weight="800" fill="#6ee7b7">projection.py</text>
-    <text x="958" y="244" font-size="9.5" fill="#a7f3d0">• Lifecycle: NEW → STABLE → AGING →</text>
-    <text x="958" y="262" font-size="9.5" fill="#a7f3d0">  DEGRADING → CRITICAL → END_OF_LIFE</text>
-    <text x="958" y="280" font-size="9.5" fill="#a7f3d0">• Regresi tren failure &amp; biaya kuartal</text>
-    <text x="958" y="298" font-size="9.5" fill="#a7f3d0">• Timeline penggantian + urgency</text>
-    <text x="958" y="316" font-size="9.5" fill="#a7f3d0">• Proyeksi biaya (avg × n kuartal)</text>
+    <rect x="30" y="350" width="290" height="130" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+    <rect x="30" y="350" width="290" height="130" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
+    <text x="46" y="374" font-size="12" font-weight="800" fill="#6ee7b7">projection.py</text>
+    <text x="46" y="394" font-size="9.5" fill="#a7f3d0">• Lifecycle stage: NEW → STABLE →</text>
+    <text x="46" y="412" font-size="9.5" fill="#a7f3d0">  AGING → DEGRADING → CRITICAL →</text>
+    <text x="46" y="430" font-size="9.5" fill="#a7f3d0">  END_OF_LIFE (regresi tren + umur)</text>
+    <text x="46" y="450" font-size="9.5" fill="#a7f3d0">• Proyeksi timeline penggantian</text>
   </g>
   <g>
-    <rect x="30" y="345" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="30" y="345" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
-    <text x="46" y="369" font-size="12" font-weight="800" fill="#6ee7b7">estimation.py</text>
-    <text x="46" y="389" font-size="9.5" fill="#a7f3d0">• Estimasi durasi (historis + kompleksitas</text>
-    <text x="46" y="407" font-size="9.5" fill="#a7f3d0">  + buffer)</text>
-    <text x="46" y="425" font-size="9.5" fill="#a7f3d0">• Resource: manpower · tools · material</text>
-    <text x="46" y="443" font-size="9.5" fill="#a7f3d0">• Gantt timeline + total labor cost</text>
-  </g>
-  <g>
-    <rect x="334" y="345" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="334" y="345" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
-    <text x="350" y="369" font-size="12" font-weight="800" fill="#6ee7b7">forecast.py</text>
-    <text x="350" y="389" font-size="9.5" fill="#a7f3d0">• Regresi linear (np.polyfit) slope + R²</text>
-    <text x="350" y="407" font-size="9.5" fill="#a7f3d0">• Proyeksi failures 4 kuartal ke depan</text>
-    <text x="350" y="425" font-size="9.5" fill="#a7f3d0">• Proyeksi total biaya (sum ahead)</text>
-    <text x="350" y="443" font-size="9.5" fill="#a7f3d0">• Trend: increasing / flat / decreasing</text>
-  </g>
-  <g>
-    <rect x="638" y="345" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="638" y="345" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
-    <text x="654" y="369" font-size="12" font-weight="800" fill="#6ee7b7">components.py</text>
-    <text x="654" y="389" font-size="9.5" fill="#a7f3d0">• Failure per komponen comp1-4 (frek,</text>
-    <text x="654" y="407" font-size="9.5" fill="#a7f3d0">  %, MTBF antar failure)</text>
-    <text x="654" y="425" font-size="9.5" fill="#a7f3d0">• Risk = 0.6×norm(fail) + 0.4×norm(cost)</text>
-    <text x="654" y="443" font-size="9.5" fill="#a7f3d0">• Risk level HIGH / MEDIUM / LOW</text>
-  </g>
-  <g>
-    <rect x="942" y="345" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="942" y="345" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
-    <text x="958" y="369" font-size="12" font-weight="800" fill="#6ee7b7">error_analysis.py</text>
-    <text x="958" y="389" font-size="9.5" fill="#a7f3d0">• Error code 14 hari sebelum failure</text>
-    <text x="958" y="407" font-size="9.5" fill="#a7f3d0">• Hit-rate per errorID (prediktor dini)</text>
-    <text x="958" y="425" font-size="9.5" fill="#a7f3d0">• Coverage failure: 36%</text>
-  </g>
-  <g>
-    <rect x="30" y="490" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="30" y="490" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
-    <text x="46" y="514" font-size="12" font-weight="800" fill="#6ee7b7">maintenance_type.py</text>
-    <text x="46" y="534" font-size="9.5" fill="#a7f3d0">• Rasio scheduled vs unscheduled</text>
-    <text x="46" y="552" font-size="9.5" fill="#a7f3d0">  (19.4% / 80.6% — reaktif!)</text>
-    <text x="46" y="570" font-size="9.5" fill="#a7f3d0">• Preventive maturity per mesin</text>
-    <text x="46" y="588" font-size="9.5" fill="#a7f3d0">• Cost penalty unscheduled vs scheduled</text>
-  </g>
-  <g>
-    <rect x="334" y="490" width="280" height="125" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
-    <rect x="334" y="490" width="280" height="125" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
-    <text x="350" y="514" font-size="12" font-weight="800" fill="#6ee7b7">telemetry.py</text>
-    <text x="350" y="534" font-size="9.5" fill="#a7f3d0">• Trend slope sensor harian (volt/rot/</text>
-    <text x="350" y="552" font-size="9.5" fill="#a7f3d0">  press/vib)</text>
-    <text x="350" y="570" font-size="9.5" fill="#a7f3d0">• Anomaly z-score (threshold 3σ)</text>
-    <text x="350" y="588" font-size="9.5" fill="#a7f3d0">• At-risk: absolut + fleet outlier z&gt;2.5</text>
-    <text x="350" y="606" font-size="9.5" fill="#a7f3d0">• Early-warning: delta sensor pre-failure</text>
+    <rect x="340" y="350" width="290" height="130" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+    <rect x="340" y="350" width="290" height="130" rx="8" fill="rgba(6,78,59,.4)" stroke="none"/>
+    <text x="356" y="374" font-size="12" font-weight="800" fill="#6ee7b7">estimation.py</text>
+    <text x="356" y="394" font-size="9.5" fill="#a7f3d0">• Estimasi durasi pekerjaan (historis +</text>
+    <text x="356" y="412" font-size="9.5" fill="#a7f3d0">  kompleksitas + buffer)</text>
+    <text x="356" y="432" font-size="9.5" fill="#a7f3d0">• Resource: manpower · tools · material</text>
+    <text x="356" y="452" font-size="9.5" fill="#a7f3d0">• Unit test: 56 test green</text>
   </g>
 
   <!-- engine -> dashboard -->
-  <path d="M 175 615 L 175 650" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
-  <path d="M 485 615 L 485 650" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M 175 480 L 175 510" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M 485 480 L 485 510" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M 870 340 L 870 510" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- == LAYER 3: DASHBOARD == -->
+
   <g>
-    <rect x="30" y="650" width="610" height="130" rx="8" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
-    <rect x="30" y="650" width="610" height="130" rx="8" fill="rgba(8,51,68,.4)" stroke="none"/>
-    <text x="46" y="672" font-size="10" font-weight="800" fill="#67e8f9" letter-spacing="1">DASHBOARD · dashboard/app.py</text>
-    <text x="46" y="692" font-size="12" font-weight="800" fill="#67e8f9">build_payload() → HTML_PAGE</text>
-    <text x="46" y="712" font-size="9.5" fill="#a5f3fc">• 6 stat cards: Mesin · MTBF · MTTR · Avail · Biaya · Failures</text>
-    <text x="46" y="730" font-size="9.5" fill="#a5f3fc">• 6 chart Chart.js: Priority · Lifecycle · Decision · Komponen Risk · Anomaly · Error hit-rate</text>
-    <text x="46" y="748" font-size="9.5" fill="#a5f3fc">• 8 tabel filterable: Prioritas · Repair/Replace · Lifecycle · Timeline · Komponen · Telemetry · Maint · Predictor</text>
-    <text x="46" y="766" font-size="9.5" fill="#a5f3fc">• A11y: button ARIA · focus-visible · prefers-reduced-motion · aria-live</text>
+    <rect x="30" y="510" width="610" height="130" rx="8" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+    <rect x="30" y="510" width="610" height="130" rx="8" fill="rgba(8,51,68,.4)" stroke="none"/>
+    <text x="46" y="532" font-size="10" font-weight="800" fill="#67e8f9" letter-spacing="1">DASHBOARD · dashboard/app.py</text>
+    <text x="46" y="552" font-size="12" font-weight="800" fill="#67e8f9">build_payload() → HTML_PAGE</text>
+    <text x="46" y="574" font-size="9.5" fill="#a5f3fc">• 6 stat cards: Total Mesin · MTBF · MTTR · Availability · Biaya · Failures</text>
+    <text x="46" y="594" font-size="9.5" fill="#a5f3fc">• 3 chart Chart.js: Top-10 Priority · Lifecycle Distribution · Decision</text>
+    <text x="46" y="614" font-size="9.5" fill="#a5f3fc">• 4 tabel filterable: Prioritas · Repair/Replace · Lifecycle · Proyeksi</text>
+    <text x="46" y="634" font-size="9.5" fill="#a5f3fc">• A11y: button ARIA · focus-visible · prefers-reduced-motion · aria-live</text>
   </g>
 
   <!-- == LAYER 4: DEPLOY == -->
-  <text x="760" y="644" font-size="11" font-weight="600" fill="#fb7185" letter-spacing="1">DEPLOYMENT</text>
+  <text x="760" y="504" font-size="11" font-weight="600" fill="#fb7185" letter-spacing="1">DEPLOYMENT</text>
   <g>
-    <rect x="760" y="650" width="220" height="54" rx="8" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
-    <rect x="760" y="650" width="220" height="54" rx="8" fill="rgba(30,41,59,.5)" stroke="none"/>
-    <text x="776" y="674" font-size="11" font-weight="600" fill="#e2e8f0">Local server</text>
-    <text x="776" y="692" font-size="9" fill="#94a3b8">python app.py → :8323</text>
+    <rect x="760" y="510" width="220" height="54" rx="8" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="760" y="510" width="220" height="54" rx="8" fill="rgba(30,41,59,.5)" stroke="none"/>
+    <text x="776" y="534" font-size="11" font-weight="600" fill="#e2e8f0">Local server</text>
+    <text x="776" y="552" font-size="9" fill="#94a3b8">python app.py → :8323</text>
   </g>
   <g>
-    <rect x="1000" y="650" width="210" height="54" rx="8" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
-    <rect x="1000" y="650" width="210" height="54" rx="8" fill="rgba(30,41,59,.5)" stroke="none"/>
-    <text x="1016" y="674" font-size="11" font-weight="600" fill="#e2e8f0">GitHub Pages</text>
-    <text x="1016" y="692" font-size="9" fill="#94a3b8">docs/ static → .github.io</text>
+    <rect x="1000" y="510" width="210" height="54" rx="8" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="1000" y="510" width="210" height="54" rx="8" fill="rgba(30,41,59,.5)" stroke="none"/>
+    <text x="1016" y="534" font-size="11" font-weight="600" fill="#e2e8f0">GitHub Pages</text>
+    <text x="1016" y="552" font-size="9" fill="#94a3b8">docs/ static → .github.io</text>
   </g>
-  <path d="M 640 677 L 756 677" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M 640 537 L 756 537" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+
 
   <!-- git flow strip -->
   <g>
-    <rect x="760" y="730" width="450" height="60" rx="8" fill="#0f172a" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
-    <text x="776" y="752" font-size="10" fill="#fda4af">Git flow: feature branch → commit → PR → merge ke main</text>
-    <text x="776" y="770" font-size="9" fill="#64748b">test: 103/103 · export_static.py regenerates docs/index.html</text>
+    <rect x="760" y="580" width="450" height="50" rx="8" fill="#0f172a" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="776" y="602" font-size="10" fill="#fda4af">Git flow: feature branch → commit → PR → merge ke main</text>
+    <text x="776" y="618" font-size="9" fill="#64748b">test: 56/56 · export_static.py regenerates docs/index.html</text>
   </g>
 
   <!-- legend -->
   <g>
-    <rect x="30" y="810" width="1180" height="70" rx="10" fill="#0f172a" stroke="#1e293b"/>
-    <rect x="50" y="828" width="14" height="14" rx="3" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.5"/><text x="72" y="840" font-size="10" fill="#cbd5e1">Data layer</text>
-    <rect x="160" y="828" width="14" height="14" rx="3" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/><text x="182" y="840" font-size="10" fill="#cbd5e1">Engine analisis</text>
-    <rect x="300" y="828" width="14" height="14" rx="3" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/><text x="322" y="840" font-size="10" fill="#cbd5e1">Dashboard UI</text>
-    <rect x="430" y="828" width="14" height="14" rx="3" fill="rgba(30,41,59,.5)" stroke="#94a3b8" stroke-width="1.5"/><text x="452" y="840" font-size="10" fill="#cbd5e1">Deployment</text>
-    <rect x="560" y="828" width="14" height="14" rx="3" fill="#0f172a" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/><text x="582" y="840" font-size="10" fill="#cbd5e1">Git delivery flow</text>
+    <rect x="30" y="650" width="1180" height="70" rx="10" fill="#0f172a" stroke="#1e293b"/>
+    <rect x="50" y="668" width="14" height="14" rx="3" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.5"/><text x="72" y="680" font-size="10" fill="#cbd5e1">Data layer</text>
+    <rect x="160" y="668" width="14" height="14" rx="3" fill="rgba(6,78,59,.4)" stroke="#34d399" stroke-width="1.5"/><text x="182" y="680" font-size="10" fill="#cbd5e1">Engine analisis</text>
+    <rect x="300" y="668" width="14" height="14" rx="3" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/><text x="322" y="680" font-size="10" fill="#cbd5e1">Dashboard UI</text>
+    <rect x="430" y="668" width="14" height="14" rx="3" fill="rgba(30,41,59,.5)" stroke="#94a3b8" stroke-width="1.5"/><text x="452" y="680" font-size="10" fill="#cbd5e1">Deployment</text>
+    <rect x="560" y="668" width="14" height="14" rx="3" fill="#0f172a" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/><text x="582" y="680" font-size="10" fill="#cbd5e1">Git delivery flow</text>
   </g>
 </svg>
 </div>
 
 <div class="grid">
-  <div class="mini"><h4>Stack</h4><div class="v">Python stdlib</div><div class="d">http.server + pandas/numpy<br>Chart.js CDN · No framework</div></div>
-  <div class="mini"><h4>Kualitas</h4><div class="v">103 tests</div><div class="d">pytest green · WCAG a11y<br>prefers-reduced-motion</div></div>
+  <div class="mini"><h4>Stack</h4><div class="v">Python stdlib</div><div class="d">http.server + numpy/pandas<br>Chart.js CDN · No framework</div></div>
+  <div class="mini"><h4>Kualitas</h4><div class="v">56 tests</div><div class="d">pytest green · WCAG a11y<br>prefers-reduced-motion</div></div>
   <div class="mini"><h4>Live</h4><div class="v">GitHub Pages</div><div class="d">FarhadHabibie.github.io/mdss-dashboard<br>Local: 127.0.0.1:8323</div></div>
 </div>
 </body>
