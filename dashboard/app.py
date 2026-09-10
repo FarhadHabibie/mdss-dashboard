@@ -29,8 +29,22 @@ from src.metrics import (
 )
 from src.priority import calculate_priority_score, get_top_priority, get_by_category
 from src.decision import calculate_repair_replacement_score
-from src.projection import calculate_lifecycle_stage, project_replacement_timeline
+from src.projection import (
+    calculate_lifecycle_stage,
+    project_replacement_timeline,
+    trend_cost_over_time,
+)
 from src.estimation import estimate_duration, estimate_resources
+from src.forecast import project_failures, project_cost_trend
+from src.components import (
+    component_failure_summary,
+    component_cost_summary,
+    component_mtbf,
+    component_risk_score,
+)
+from src.error_analysis import error_before_failure, predictor_summary
+from src.maintenance_type import maintenance_type_ratio, preventive_maturity
+from src.telemetry import sensor_trend, anomaly_scores, early_warning
 
 
 # ---------------------------------------------------------------------------
@@ -56,6 +70,9 @@ def build_payload(data_dir: str) -> dict:
     failures = data["failures"]
     cost = data["cost"]
     engineering = data["engineering"]
+    errors = data["errors"]
+    maintenance = data["maintenance"]
+    telemetry = data["telemetry"]
 
     date_min = str(failures["datetime"].min().date())
     date_max = str(failures["datetime"].max().date())
@@ -69,6 +86,25 @@ def build_payload(data_dir: str) -> dict:
     decision = calculate_repair_replacement_score(cost, machines, frequency)
     lifecycle = calculate_lifecycle_stage(machines, failures, cost)
     timeline = project_replacement_timeline(lifecycle)
+
+    # --- new analysis modules ---
+    component_fail = component_failure_summary(failures)
+    component_cost = component_cost_summary(cost)
+    component_mtbf_df = component_mtbf(failures, machines)
+    component_risk = component_risk_score(component_fail, component_cost)
+
+    forecast_fail = project_failures(failures, machines)
+    forecast_cost = project_cost_trend(cost, machines)
+
+    err_before = error_before_failure(errors, failures)
+    pred_summary = predictor_summary(errors, failures)
+
+    maint_ratio = maintenance_type_ratio(maintenance)
+    preventive = preventive_maturity(maintenance, machines)
+
+    sensor_trend_df = sensor_trend(telemetry, machines)
+    anomaly = anomaly_scores(telemetry, failures, machines)
+    warning = early_warning(failures, telemetry)
 
     priority_sorted = priority.sort_values("score", ascending=False).reset_index(drop=True)
 
@@ -86,6 +122,13 @@ def build_payload(data_dir: str) -> dict:
 
     job_types = sorted(engineering["job_type"].unique().tolist())
 
+    at_risk_count = int((anomaly["at_risk"] == True).sum()) if len(anomaly) else 0
+    unsched_pct = 0.0
+    _mratio = maint_ratio.set_index("type")["pct"] if len(maint_ratio) else None
+    if _mratio is not None and "unscheduled" in _mratio.index:
+        unsched_pct = float(_mratio.get("unscheduled", 0.0))
+    error_coverage = pred_summary.get("coverage", 0.0) if isinstance(pred_summary, dict) else 0.0
+
     return {
         "summary": {
             "total_machines": int(len(machines)),
@@ -99,6 +142,9 @@ def build_payload(data_dir: str) -> dict:
             "replace_count": replace_count,
             "review_count": review_count,
             "repair_count": repair_count,
+            "at_risk_count": at_risk_count,
+            "unscheduled_pct": unsched_pct,
+            "error_coverage": error_coverage,
         },
         "priority": _df_to_records(priority_sorted),
         "decision": _df_to_records(decision),
@@ -106,6 +152,18 @@ def build_payload(data_dir: str) -> dict:
         "replacement_timeline": _df_to_records(timeline),
         "machines": _df_to_records(machines[["machineID", "model", "age"]].sort_values("machineID")),
         "engineering_jobs": job_types,
+        # new modules
+        "components": _df_to_records(component_risk),
+        "component_mtbf": _df_to_records(component_mtbf_df),
+        "forecast_failures": _df_to_records(forecast_fail),
+        "forecast_cost": _df_to_records(forecast_cost),
+        "error_analysis": _df_to_records(err_before),
+        "error_predictor": pred_summary,
+        "maintenance_ratio": _df_to_records(maint_ratio),
+        "preventive": _df_to_records(preventive),
+        "telemetry_trend": _df_to_records(sensor_trend_df),
+        "anomaly": _df_to_records(anomaly),
+        "early_warning": _df_to_records(warning),
     }
 
 
@@ -458,6 +516,49 @@ th,td{outline:none}
       </div>
     </div>
 
+    <div id="components-section" class="section">
+      <div class="section-head">
+        <h2>Komponen &amp; Health</h2>
+        <span class="hint">Frekuensi failure per komponen, biaya, MTBF &mdash; sensor telemetry trend + anomaly</span>
+      </div>
+      <div class="charts-row" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:18px">
+        <div class="chart-card"><h2 class="chart-title">Komponen Risk</h2><canvas id="chart-component"></canvas></div>
+        <div class="chart-card"><h2 class="chart-title">Telemetry Anomaly</h2><canvas id="chart-anomaly"></canvas></div>
+        <div class="chart-card"><h2 class="chart-title">Error hit-rate (14d)</h2><canvas id="chart-error"></canvas></div>
+      </div>
+      <div class="table-wrap" style="margin-bottom:14px">
+        <table id="component-table" aria-label="Analisa komponen">
+          <thead><tr><th>Komponen</th><th>Failures</th><th>% Total</th><th>Total Cost (Jt)</th><th>Risk Score</th><th>Risk Level</th></tr></thead>
+          <tbody id="component-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table id="telemetry-table" aria-label="Telemetry trend per mesin">
+          <thead><tr><th>MachineID</th><th>Volt Δ</th><th>Rot Δ</th><th>Press Δ</th><th>Vib Δ</th><th>Anomaly</th><th>At Risk</th></tr></thead>
+          <tbody id="telemetry-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="maint-section" class="section">
+      <div class="section-head">
+        <h2>Maintenance Type &amp; Error Leading Indicator</h2>
+        <span class="hint">Rasio scheduled vs unscheduled &mdash; error codes sebelum failure (prediktor dini)</span>
+      </div>
+      <div class="table-wrap" style="margin-bottom:14px">
+        <table id="maint-table" aria-label="Maintenance type ratio">
+          <thead><tr><th>Type</th><th>Jumlah</th><th>% Total</th></tr></thead>
+          <tbody id="maint-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table id="predictor-table" aria-label="Error predictor summary">
+          <thead><tr><th>Error ID</th><th>Total</th><th>Preceding Failure</th><th>Hit Rate</th></tr></thead>
+          <tbody id="predictor-body"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="footer">MDSS &middot; Enterprise Command Center<span class="sep">&middot;</span>Maintenance Decision Support System</div>
   </div>
 
@@ -514,8 +615,8 @@ try{
     {label:"Avg MTBF", value:fmt(s.avg_mtbf)+" hr", cls:"tone-teal", sub:"Rata-rata antar failure"},
     {label:"Avg MTTR", value:fmt(s.avg_mttr)+" hr", cls:"", sub:"Rata-rata durasi repair"},
     {label:"Availability", value:fmt(s.avg_availability)+"%", cls:"tone-info", sub:"Uptime keseluruhan"},
-    {label:"Total Biaya", value:fmt(s.total_maintenance_cost)+" Jt", cls:"tone-amber", sub:"Replace "+s.replace_count+" \u00b7 Review "+s.review_count},
-    {label:"Total Failures", value:s.total_failures, cls:"", sub:"Breakdown 2015 \u00b7 Repair "+s.repair_count}
+    {label:"Total Biaya", value:fmt(s.total_maintenance_cost)+" Jt", cls:"tone-amber", sub:"Replace "+s.replace_count+" \u00b7 Unsch "+fmt(s.unscheduled_pct,0)+"%"},
+    {label:"Total Failures", value:s.total_failures, cls:"", sub:"Repair "+s.repair_count+" \u00b7 Err coverage "+fmt(s.error_coverage*100,0)+"%"}
   ];
   var wrap = document.getElementById("stats");
   cards.forEach(function(c){
@@ -753,6 +854,98 @@ try{
     });
   }
 }catch(e){console.error("charts",e)}
+
+// ---- COMPONENT TABLE + CHART ----
+try{
+  var compBody = document.getElementById("component-body");
+  (DATA.components||[]).forEach(function(r){
+    var tr = document.createElement("tr");
+    tr.appendChild(el("td",{textContent:r.component}));
+    tr.appendChild(el("td",{textContent:String(r.n_failures)}));
+    tr.appendChild(el("td",{textContent:fmt(r.pct,1)+"%"}));
+    tr.appendChild(el("td",{textContent:fmt(r.total_cost_Jt)}));
+    tr.appendChild(el("td",{textContent:fmt(r.risk_score,2)}));
+    var lv = el("span",{className:"badge badge-"+(r.risk_level||"low").toLowerCase(),textContent:r.risk_level});
+    var td = document.createElement("td");td.appendChild(lv);tr.appendChild(td);
+    compBody.appendChild(tr);
+  });
+  var compChart = document.getElementById("chart-component");
+  if(typeof Chart!=="undefined" && (DATA.components||[]).length){
+    new Chart(compChart,{
+      type:"bar",
+      data:{labels:(DATA.components||[]).map(function(r){return r.component}),datasets:[{label:"Risk Score",data:(DATA.components||[]).map(function(r){return r.risk_score}),backgroundColor:"#4f46e5",borderRadius:4}]},
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#576178"},grid:{color:"#e6eaf4"}},y:{beginAtZero:true,ticks:{color:"#576178"},grid:{color:"#e6eaf4"}}}}
+    });
+  }
+}catch(e){console.error("component",e)}
+
+// ---- TELEMETRY TABLE ----
+try{
+  var telBody = document.getElementById("telemetry-body");
+  (DATA.telemetry_trend||[]).forEach(function(r){
+    var tr = document.createElement("tr");
+    tr.appendChild(el("td",{textContent:String(r.machineID)}));
+    tr.appendChild(el("td",{textContent:fmt(r.volt_slope,3)}));
+    tr.appendChild(el("td",{textContent:fmt(r.rot_slope,3)}));
+    tr.appendChild(el("td",{textContent:fmt(r.press_slope,3)}));
+    tr.appendChild(el("td",{textContent:fmt(r.vib_slope,3)}));
+    tr.appendChild(el("td",{textContent:fmt(r.anomaly_score,3)}));
+    var risk = r.at_risk ? el("span",{className:"badge badge-urgent",textContent:"RISK"}) : el("span",{className:"badge badge-low",textContent:"OK"});
+    var td2=document.createElement("td");td2.appendChild(risk);tr.appendChild(td2);
+    telBody.appendChild(tr);
+  });
+}catch(e){console.error("telemetry",e)}
+
+// ---- ANOMALY CHART ----
+try{
+  var anChart = document.getElementById("chart-anomaly");
+  if(typeof Chart!=="undefined" && (DATA.anomaly||[]).length){
+    var an = (DATA.anomaly||[]).slice(0,20);
+    new Chart(anChart,{
+      type:"bar",
+      data:{labels:an.map(function(r){return "M"+r.machineID}),datasets:[{label:"Anomaly Score",data:an.map(function(r){return r.anomaly_score}),backgroundColor:an.map(function(r){return r.at_risk?"#dc2626":"#059669"}),borderRadius:4}]},
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#576178"},grid:{color:"#e6eaf4"}},y:{beginAtZero:true,ticks:{color:"#576178"},grid:{color:"#e6eaf4"}}}}
+    });
+  }
+}catch(e){console.error("anomaly-chart",e)}
+
+// ---- MAINT TYPE TABLE ----
+try{
+  var mtBody = document.getElementById("maint-body");
+  (DATA.maintenance_ratio||[]).forEach(function(r){
+    var tr = document.createElement("tr");
+    tr.appendChild(el("td",{textContent:r.type}));
+    tr.appendChild(el("td",{textContent:String(r.n)}));
+    tr.appendChild(el("td",{textContent:fmt(r.pct,1)+"%"}));
+    mtBody.appendChild(tr);
+  });
+}catch(e){console.error("maint-type",e)}
+
+// ---- ERROR PREDICTOR ----
+try{
+  var prBody = document.getElementById("predictor-body");
+  (DATA.error_predictor||{top_errors:[]}).top_errors.forEach(function(r){
+    var tr = document.createElement("tr");
+    tr.appendChild(el("td",{textContent:r.errorID}));
+    tr.appendChild(el("td",{textContent:String(r.total_occurrences)}));
+    tr.appendChild(el("td",{textContent:String(r.n_preceding_failure)}));
+    tr.appendChild(el("td",{textContent:fmt(r.hit_rate,2)}));
+    prBody.appendChild(tr);
+  });
+}catch(e){console.error("predictor",e)}
+
+// ---- ERROR CHART ----
+try{
+  var errChart = document.getElementById("chart-error");
+  if(typeof Chart!=="undefined" && (DATA.error_predictor||{}).top_errors && DATA.error_predictor.top_errors.length){
+    var top = DATA.error_predictor.top_errors.slice(0,8);
+    new Chart(errChart,{
+      type:"bar",
+      data:{labels:top.map(function(r){return r.errorID}),datasets:[{label:"Hit Rate",data:top.map(function(r){return r.hit_rate}),backgroundColor:"#ca8a04",borderRadius:4}]},
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#576178"},grid:{color:"#e6eaf4"}},y:{beginAtZero:true,ticks:{color:"#576178"},grid:{color:"#e6eaf4"}}}}
+    });
+  }
+}catch(e){console.error("error-chart",e)}
 
 })();
 </script>
