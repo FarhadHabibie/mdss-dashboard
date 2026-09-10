@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MDSS — Maintenance Decision Support System</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   MDSS — Enterprise Command Center (Corporate Dark)
+   Design tokens, layers, spacing scale 8px
+   ============================================================ */
+:root{
+  /* surfaces — light premium */
+  --bg:#eef1f9;
+  --surface-0:#e7ebf6;
+  --surface-1:#ffffff;
+  --surface-2:#f4f6fc;
+  --surface-3:#e9edf7;
+  --border:#e4e8f2;
+  --border-strong:#cdd5e8;
+
+  /* text */
+  --text-hi:#161d33;
+  --text:#3f4759;
+  --text-mid:#576178;
+  --text-low:#9aa3bb;
+
+  /* brand */
+  --brand:#4f46e5;
+  --brand-2:#7c3aed;
+  --brand-3:#2563eb;
+
+  /* status */
+  --urgent:#d92d20;  --urgent-bg:linear-gradient(135deg,rgba(217,45,32,.10),rgba(217,45,32,.05));
+  --high:#ea580c;    --high-bg:linear-gradient(135deg,rgba(234,88,12,.12),rgba(234,88,12,.05));
+  --medium:#b45309;  --medium-bg:linear-gradient(135deg,rgba(180,83,9,.12),rgba(180,83,9,.05));
+  --low:#056347;     --low-bg:linear-gradient(135deg,rgba(4,120,87,.12),rgba(4,120,87,.05));
+  --new:#075985;     --new-bg:linear-gradient(135deg,rgba(3,105,161,.12),rgba(3,105,161,.05));
+  --stable:#056347;  --stable-bg:linear-gradient(135deg,rgba(4,120,87,.12),rgba(4,120,87,.05));
+  --aging:#a16207;   --aging-bg:linear-gradient(135deg,rgba(180,83,9,.12),rgba(180,83,9,.05));
+  --degrading:#ea580c;--degrading-bg:linear-gradient(135deg,rgba(234,88,12,.12),rgba(234,88,12,.05));
+  --critical:#d92d20;--critical-bg:linear-gradient(135deg,rgba(217,45,32,.10),rgba(217,45,32,.05));
+  --eol:#b42318;     --eol-bg:linear-gradient(135deg,rgba(180,35,24,.12),rgba(180,35,24,.05));
+
+  --r-sm:8px; --r-md:12px; --r-lg:18px;
+  --shadow-sm:0 1px 2px rgba(22,29,51,.05);
+  --shadow:0 6px 16px -4px rgba(22,29,51,.10),0 2px 4px rgba(22,29,51,.04);
+  --shadow-lg:0 20px 40px -12px rgba(22,29,51,.18),0 8px 16px -6px rgba(22,29,51,.08);
+  --grad-brand:linear-gradient(135deg,#4f46e5,#7c3aed 55%,#2563eb);
+  --teal:#0d9488;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(1100px 520px at 5% -8%, rgba(79,70,229,.07), transparent 55%),
+    radial-gradient(900px 480px at 95% -6%, rgba(124,58,237,.06), transparent 55%),
+    var(--bg);
+  color:var(--text);font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  line-height:1.5;font-size:14px;-webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* --- brand bar --- */
+.navbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px;height:64px;
+  background:rgba(255,255,255,.82);backdrop-filter:blur(16px) saturate(1.4);
+  -webkit-backdrop-filter:blur(16px) saturate(1.4);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 8px 24px -12px rgba(22,29,51,.10);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  width:34px;height:34px;border-radius:10px;
+  background:var(--grad-brand);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:800;font-size:16px;letter-spacing:.5px;
+}
+.brand-name{font-weight:800;color:var(--text-hi);font-size:15px;letter-spacing:-.2px}
+.brand-sub{color:var(--text-mid);font-size:11px;letter-spacing:.6px;text-transform:uppercase;font-weight:600}
+.nav-status{display:flex;align-items:center;gap:8px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--teal)}
+.nav-status span{color:var(--text-mid);font-size:12px;font-weight:500}
+
+.wrap{max-width:1440px;margin:0 auto;padding:24px 28px 48px}
+.page-head{margin:14px 0 26px}
+.page-head h1{
+  font-size:27px;font-weight:800;color:var(--text-hi);letter-spacing:-.6px;
+}
+.page-head p{color:var(--text-mid);font-size:13.5px;margin-top:6px;max-width:720px;line-height:1.6}
+.text-low{color:var(--text-low)}
+
+/* --- stat cards --- */
+.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
+.stat-card{
+  position:relative;overflow:hidden;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,1),rgba(250,251,254,1));
+  border:1px solid var(--border);
+  border-radius:var(--r-md);padding:20px 20px 18px;
+  box-shadow:var(--shadow);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s,border-color .22s;
+}
+.stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--border-strong)}
+.stat-card::before{
+  content:"";position:absolute;left:0;top:18px;bottom:18px;width:1px;border-radius:1px;
+  background:var(--brand);opacity:.6;
+}
+.stat-card::after{ /* sheen */
+  content:"";position:absolute;top:0;right:0;width:120px;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.9),transparent);
+  transform:translateX(-140%);transition:transform .7s ease;
+  pointer-events:none;
+}
+.stat-card:hover::after{transform:translateX(220%)}
+.stat-card .label{font-size:11px;color:var(--text-mid);text-transform:uppercase;
+  letter-spacing:.7px;font-weight:700}
+.stat-card .value{font-variant-numeric:tabular-nums;font-size:28px;font-weight:800;
+  color:var(--text-hi);margin-top:9px;letter-spacing:-.8px}
+.stat-card .sub{font-size:11.5px;color:var(--text-low);margin-top:3px}
+.stat-card.tone-teal::before{background:linear-gradient(135deg,#0d9488,#14b8a6)}
+.stat-card.tone-info::before{background:linear-gradient(135deg,#0284c7,#38bdf8)}
+.stat-card.tone-amber::before{background:linear-gradient(135deg,#b45309,#f59e0b)}
+
+/* --- sections --- */
+.section{
+  background:linear-gradient(180deg,#ffffff,#fbfcff);
+  border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:24px 26px;margin-bottom:24px;box-shadow:var(--shadow);
+  transition:box-shadow .22s;
+}
+.section:hover{box-shadow:var(--shadow-lg)}
+.section-head{display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:4px;flex-wrap:wrap;gap:10px}
+.section-head h2{
+  display:flex;align-items:center;gap:10px;
+  font-size:16.5px;font-weight:750;color:var(--text-hi);letter-spacing:-.25px;
+}
+.section-head h2::before{content:"";width:3px;height:16px;border-radius:2px;background:var(--brand)}
+.section-head .hint{font-size:12px;color:var(--text-mid)}
+
+/* pills */
+.priority-bar{display:flex;gap:8px;margin:14px 0 16px;flex-wrap:wrap}
+.pill{
+  padding:7px 15px;border-radius:9px;font-size:12.5px;font-weight:650;
+  cursor:pointer;border:1px solid var(--border);transition:all .18s;user-select:none;
+  background:#fff;color:var(--text-mid);box-shadow:var(--shadow-sm);
+}
+.pill:hover{color:var(--text-hi);border-color:var(--border-strong);box-shadow:var(--shadow)}
+.pill.active{box-shadow:0 0 0 1.5px var(--border-strong)}
+.pill-urgent{background:var(--urgent-bg);color:var(--urgent)}
+.pill-urgent.active{border-color:var(--urgent)}
+.pill-high{background:var(--high-bg);color:var(--high)}
+.pill-high.active{border-color:var(--high)}
+.pill-medium{background:var(--medium-bg);color:var(--medium)}
+.pill-medium.active{border-color:var(--medium)}
+.pill-low{background:var(--low-bg);color:var(--low)}
+.pill-low.active{border-color:var(--low)}
+.pill-all{background:var(--surface-2);color:var(--text-hi)}
+.pill-all.active{border-color:var(--brand);color:var(--brand)}
+
+/* chips */
+.chip-row{display:flex;gap:8px;margin:14px 0 16px;flex-wrap:wrap}
+.chip{
+  padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;
+  cursor:pointer;border:1px solid var(--border);background:#fff;
+  color:var(--text-mid);transition:all .18s;user-select:none;box-shadow:var(--shadow-sm);
+}
+.chip:hover{color:var(--text-hi);border-color:var(--border-strong);box-shadow:var(--shadow)}
+.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+/* tables */
+.table-wrap{overflow-x:auto;max-height:520px;overflow-y:auto;
+  border:1px solid var(--border);border-radius:var(--r-sm);padding:0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{position:sticky;top:0;z-index:2}
+th{
+  text-align:left;padding:12px 16px;color:var(--text-mid);font-weight:700;
+  border-bottom:1px solid var(--border-strong);font-size:11px;
+  text-transform:uppercase;letter-spacing:.6px;
+  background:linear-gradient(180deg,#f7f9fd,#f0f3fa);white-space:nowrap;
+}
+td{padding:11px 16px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;
+  color:var(--text)}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background .12s}
+tbody tr:hover td{background:var(--surface-2)}
+
+/* badges with dot */
+.badge{display:inline-flex;align-items:center;gap:6px;
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;
+  letter-spacing:.3px;text-transform:uppercase}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge-urgent{background:var(--urgent-bg);color:var(--urgent)}
+.badge-high{background:var(--high-bg);color:var(--high)}
+.badge-medium{background:var(--medium-bg);color:var(--medium)}
+.badge-low{background:var(--low-bg);color:var(--low)}
+.badge-replace{background:var(--critical-bg);color:var(--critical)}
+.badge-review{background:var(--medium-bg);color:var(--medium)}
+.badge-repair{background:var(--low-bg);color:var(--low)}
+.badge-new{background:var(--new-bg);color:var(--new)}
+.badge-stable{background:var(--stable-bg);color:var(--stable)}
+.badge-aging{background:var(--aging-bg);color:var(--aging)}
+.badge-degrading{background:var(--degrading-bg);color:var(--degrading)}
+.badge-critical{background:var(--critical-bg);color:var(--critical)}
+.badge-end_of_life{background:var(--eol-bg);color:var(--eol)}
+.badge-old{background:var(--surface-2);color:var(--text-mid)}
+
+/* charts */
+.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:2px}
+.chart-card{
+  background:linear-gradient(180deg,#ffffff,#fbfcff);
+  border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:20px 20px 14px;box-shadow:var(--shadow);transition:box-shadow .22s,transform .22s;
+}
+.chart-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.chart-card .chart-title{font-size:13px;font-weight:750;color:var(--text-hi);margin-bottom:16px;
+  padding-left:11px;border-left:1px solid var(--brand);letter-spacing:.1px}
+.chart-fallback{color:var(--text-mid);text-align:center;padding:48px 20px;font-size:13px}
+
+/* footer */
+.footer{text-align:center;padding:28px 0 10px;color:var(--text-mid);font-size:12px;
+  border-top:1px solid var(--border);margin-top:8px;letter-spacing:.2px}
+.footer .sep{padding:0 8px;color:var(--text-low)}
+
+/* responsive */
+
+
+/* cost trend chips */
+.trend{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;
+  font-size:11px;font-weight:700;letter-spacing:.2px}
+.t-up{background:rgba(217,45,32,.10);color:#d92d20}
+.t-down{background:rgba(5,99,71,.10);color:#056347}
+.t-flat{background:rgba(107,113,140,.10);color:#67718c}
+
+/* --- entrance animations --- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.stats-row{animation:fadeUp .35s cubic-bezier(.2,.8,.2,1) both}
+.charts-row{animation:fadeUp .4s cubic-bezier(.2,.8,.2,1) .08s both}
+.section{animation:fadeUp .45s cubic-bezier(.2,.8,.2,1) .16s both}
+.priority-bar,.chip-row{margin:14px 0 16px}
+
+/* focus-visible for interactive elements */
+.pill:focus-visible,.chip:focus-visible{
+  outline:2px solid var(--brand);outline-offset:2px;
+}
+table{border-collapse:separate;border-spacing:0}
+th,td{outline:none}
+.table-wrap:focus-within{box-shadow:0 0 0 2px var(--brand)}
+
+@media(max-width:1100px){.stats-row{grid-template-columns:repeat(3,1fr)}.charts-row{grid-template-columns:1fr}}
+@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}.navbar{padding:0 16px}.wrap{padding:16px}}
+@media(max-width:480px){.stats-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <div>
+        <div class="brand-name">MDSS</div>
+        <div class="brand-sub">Maintenance Decision Support</div>
+      </div>
+    </div>
+    <div class="nav-status"><span class="live-dot"></span><span>Live Data &middot; 100 mesin</span></div>
+  </nav>
+
+  <div class="wrap">
+    <div class="page-head">
+      <h1>Command Center Maintenance</h1>
+      <p>Analisis prioritas, keputusan repair vs replacement, proyeksi lifecycle, dan planning resource &mdash; berbasis data historis 100 mesin.</p>
+    </div>
+
+    <div id="stats" class="stats-row"></div>
+
+    <div class="charts-row">
+    <div class="chart-card"><h2 class="chart-title">Top 10 Priority</h2><canvas id="chart-priority"></canvas></div>
+    <div class="chart-card"><h2 class="chart-title">Lifecycle Distribution</h2><canvas id="chart-lifecycle"></canvas></div>
+    <div class="chart-card"><h2 class="chart-title">Decision Distribution</h2><canvas id="chart-decision"></canvas></div>
+    </div>
+
+    <div id="priority-section" class="section">
+      <div class="section-head">
+        <h2>Priority Mesin</h2>
+        <span class="hint">Skor prioritas 0&ndash;100 &mdash; URGENT &ge;75 &middot; HIGH 50&ndash;74 &middot; MEDIUM 25&ndash;49 &middot; LOW &lt;25</span>
+      </div>
+      <div id="priority-pills" class="priority-bar"></div>
+      <div class="table-wrap">
+        <table id="priority-table" aria-label="Prioritas mesin">
+          <thead><tr>
+            <th>MachineID</th><th>Model</th><th>Age</th><th>MTBF (hr)</th>
+            <th>MTTR (hr)</th><th>Avail %</th><th>Fail/mo</th><th>Cost Trend</th><th>Total Cost (Jt)</th>
+            <th>Score</th><th>Category</th>
+          </tr></thead>
+          <tbody id="priority-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="decision-section" class="section">
+      <div class="section-head">
+        <h2>Keputusan Repair vs Replace</h2>
+        <span class="hint">Berdasarkan cost ratio, frekuensi, umur, criticality &amp; downtime</span>
+      </div>
+      <div id="decision-chips" class="chip-row"></div>
+      <div class="table-wrap">
+        <table id="decision-table" aria-label="Keputusan repair vs replace">
+          <thead><tr>
+            <th>MachineID</th><th>Model</th><th>Age</th><th>Cost Ratio</th>
+            <th>Score</th><th>Decision</th>
+          </tr></thead>
+          <tbody id="decision-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="lifecycle-section" class="section">
+      <div class="section-head">
+        <h2>Lifecycle Stage</h2>
+        <span class="hint">Regresi tren failure &amp; biaya per kuartal + umur equipment</span>
+      </div>
+      <div id="lifecycle-chips" class="chip-row"></div>
+      <div class="table-wrap">
+        <table id="lifecycle-table" aria-label="Lifecycle stage">
+          <thead><tr>
+            <th>MachineID</th><th>Model</th><th>Age</th><th>Stage</th>
+          </tr></thead>
+          <tbody id="lifecycle-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="timeline-section" class="section">
+      <div class="section-head">
+        <h2>Proyeksi Penggantian</h2>
+        <span class="hint">Urut berdasar sisa umur &mdash; prioritas penggantian equipment</span>
+      </div>
+      <div class="table-wrap">
+        <table id="timeline-table" aria-label="Proyeksi penggantian">
+          <thead><tr>
+            <th>MachineID</th><th>Model</th><th>Stage</th>
+            <th>Sisa Umur (bln)</th><th>Urgency</th>
+          </tr></thead>
+          <tbody id="timeline-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer">MDSS &middot; Enterprise Command Center<span class="sep">&middot;</span>Maintenance Decision Support System</div>
+  </div>
+
+<script id="app-data" type="application/json">{"summary": {"total_machines": 100, "avg_mtbf": 847.9232069028376, "avg_mttr": 15.839327797695773, "avg_availability": 96.62939786650458, "total_failures": 1662, "total_maintenance_cost": 74071.59999999999, "urgent_count": 2, "high_count": 21, "replace_count": 0, "review_count": 29, "repair_count": 71}, "priority": [{"machineID": 20, "model": "model3", "age": 20, "mtbf_hours": 180.2045454545, "mttr_hours": 18.7282608696, "availability_pct": 90.5856348103, "failures_per_month": 0.1916666667, "total_cost_Jt": 2359.5, "score": 78.1114381372, "category": "URGENT"}, {"machineID": 77, "model": "model1", "age": 19, "mtbf_hours": 185.9333333333, "mttr_hours": 19.252173913, "availability_pct": 90.617186286, "failures_per_month": 0.201754386, "total_cost_Jt": 2095.97, "score": 76.9354616977, "category": "URGENT"}, {"machineID": 61, "model": "model1", "age": 18, "mtbf_hours": 201.4418604651, "mttr_hours": 19.7454545455, "availability_pct": 91.072971547, "failures_per_month": 0.2037037037, "total_cost_Jt": 1993.31, "score": 74.9653850233, "category": "HIGH"}, {"machineID": 36, "model": "model2", "age": 18, "mtbf_hours": 207.5, "mttr_hours": 17.9292682927, "availability_pct": 92.0466102612, "failures_per_month": 0.1898148148, "total_cost_Jt": 2141.87, "score": 71.6192328688, "category": "HIGH"}, {"machineID": 50, "model": "model4", "age": 19, "mtbf_hours": 216.2702702703, "mttr_hours": 20.3631578947, "availability_pct": 91.3946402025, "failures_per_month": 0.1666666667, "total_cost_Jt": 2082.55, "score": 70.3520249097, "category": "HIGH"}, {"machineID": 10, "model": "model4", "age": 18, "mtbf_hours": 219.0526315789, "mttr_hours": 19.3025641026, "availability_pct": 91.901764907, "failures_per_month": 0.1805555556, "total_cost_Jt": 2046.62, "score": 70.1681904254, "category": "HIGH"}, {"machineID": 60, "model": "model3", "age": 17, "mtbf_hours": 229.7027027027, "mttr_hours": 19.2263157895, "availability_pct": 92.2763862944, "failures_per_month": 0.1862745098, "total_cost_Jt": 1936.55, "score": 68.8425072966, "category": "HIGH"}, {"machineID": 25, "model": "model3", "age": 20, "mtbf_hours": 228.8857142857, "mttr_hours": 18.95, "availability_pct": 92.3538058045, "failures_per_month": 0.15, "total_cost_Jt": 2172.08, "score": 66.1408443014, "category": "HIGH"}, {"machineID": 49, "model": "model3", "age": 18, "mtbf_hours": 233.7058823529, "mttr_hours": 19.0342857143, "availability_pct": 92.4688323744, "failures_per_month": 0.162037037, "total_cost_Jt": 1925.66, "score": 65.1876709092, "category": "HIGH"}, {"machineID": 39, "model": "model2", "age": 18, "mtbf_hours": 254.5454545455, "mttr_hours": 21.6176470588, "availability_pct": 92.1721450356, "failures_per_month": 0.1574074074, "total_cost_Jt": 1777.67, "score": 64.8935940886, "category": "HIGH"}, {"machineID": 91, "model": "model2", "age": 19, "mtbf_hours": 241.2121212121, "mttr_hours": 19.6117647059, "availability_pct": 92.4808402279, "failures_per_month": 0.149122807, "total_cost_Jt": 1914.63, "score": 63.5958936418, "category": "HIGH"}, {"machineID": 59, "model": "model4", "age": 20, "mtbf_hours": 236.1764705882, "mttr_hours": 19.1942857143, "availability_pct": 92.4837573447, "failures_per_month": 0.1458333333, "total_cost_Jt": 1947.24, "score": 63.3708472267, "category": "HIGH"}, {"machineID": 86, "model": "model4", "age": 17, "mtbf_hours": 253.0606060606, "mttr_hours": 18.7147058824, "availability_pct": 93.1139051047, "failures_per_month": 0.1666666667, "total_cost_Jt": 1733.21, "score": 62.1812631965, "category": "HIGH"}, {"machineID": 51, "model": "model4", "age": 19, "mtbf_hours": 271.9032258065, "mttr_hours": 22.209375, "availability_pct": 92.4486829401, "failures_per_month": 0.1403508772, "total_cost_Jt": 1685.01, "score": 61.5603947679, "category": "HIGH"}, {"machineID": 14, "model": "model3", "age": 14, "mtbf_hours": 280.5333333333, "mttr_hours": 17.8096774194, "availability_pct": 94.0304693666, "failures_per_month": 0.1845238095, "total_cost_Jt": 1420.06, "score": 58.763344856, "category": "HIGH"}, {"machineID": 67, "model": "model2", "age": 17, "mtbf_hours": 294.0357142857, "mttr_hours": 19.9620689655, "availability_pct": 93.6426083144, "failures_per_month": 0.1421568627, "total_cost_Jt": 1600.7, "score": 56.9961467736, "category": "HIGH"}, {"machineID": 63, "model": "model1", "age": 11, "mtbf_hours": 318.3846153846, "mttr_hours": 17.4666666667, "availability_pct": 94.799285398, "failures_per_month": 0.2045454545, "total_cost_Jt": 1144.79, "score": 56.4562792686, "category": "HIGH"}, {"machineID": 12, "model": "model3", "age": 19, "mtbf_hours": 331.3461538462, "mttr_hours": 22.2178571429, "availability_pct": 93.7160297846, "failures_per_month": 0.1228070175, "total_cost_Jt": 1547.9, "score": 55.154861542, "category": "HIGH"}, {"machineID": 73, "model": "model1", "age": 16, "mtbf_hours": 299.9285714286, "mttr_hours": 18.475862069, "availability_pct": 94.1973602987, "failures_per_month": 0.1510416667, "total_cost_Jt": 1426.66, "score": 54.4511706931, "category": "HIGH"}, {"machineID": 38, "model": "model3", "age": 13, "mtbf_hours": 282.5925925926, "mttr_hours": 16.4071428571, "availability_pct": 94.5126563967, "failures_per_month": 0.1794871795, "total_cost_Jt": 1143.05, "score": 53.9198403048, "category": "HIGH"}, {"machineID": 19, "model": "model3", "age": 12, "mtbf_hours": 324.2307692308, "mttr_hours": 17.3111111111, "availability_pct": 94.9314821673, "failures_per_month": 0.1875, "total_cost_Jt": 966.84, "score": 52.3804714232, "category": "HIGH"}, {"machineID": 40, "model": "model1", "age": 11, "mtbf_hours": 338.5652173913, "mttr_hours": 16.5625, "availability_pct": 95.3361849304, "failures_per_month": 0.1818181818, "total_cost_Jt": 1065.62, "score": 50.9972236797, "category": "HIGH"}, {"machineID": 57, "model": "model1", "age": 20, "mtbf_hours": 323.36, "mttr_hours": 20.9269230769, "availability_pct": 93.9216619412, "failures_per_month": 0.1083333333, "total_cost_Jt": 1394.53, "score": 50.820608903, "category": "HIGH"}, {"machineID": 9, "model": "model2", "age": 18, "mtbf_hours": 337.125, "mttr_hours": 19.864, "availability_pct": 94.4356828922, "failures_per_month": 0.1157407407, "total_cost_Jt": 1135.35, "score": 47.6073083378, "category": "MEDIUM"}, {"machineID": 89, "model": "model1", "age": 11, "mtbf_hours": 340.75, "mttr_hours": 13.612, "availability_pct": 96.1587303379, "failures_per_month": 0.1893939394, "total_cost_Jt": 948.44, "score": 47.1994814679, "category": "MEDIUM"}, {"machineID": 22, "model": "model1", "age": 18, "mtbf_hours": 346.1739130435, "mttr_hours": 19.5416666667, "availability_pct": 94.6565944272, "failures_per_month": 0.1111111111, "total_cost_Jt": 1189.79, "score": 46.7461048791, "category": "MEDIUM"}, {"machineID": 90, "model": "model2", "age": 19, "mtbf_hours": 389.7777777778, "mttr_hours": 23.0368421053, "availability_pct": 94.4195672838, "failures_per_month": 0.0833333333, "total_cost_Jt": 1192.1, "score": 46.1489436878, "category": "MEDIUM"}, {"machineID": 24, "model": "model3", "age": 18, "mtbf_hours": 381.1818181818, "mttr_hours": 19.9, "availability_pct": 95.0384188218, "failures_per_month": 0.1064814815, "total_cost_Jt": 1219.1, "score": 45.6296310535, "category": "MEDIUM"}, {"machineID": 32, "model": "model2", "age": 12, "mtbf_hours": 379.6, "mttr_hours": 18.5, "availability_pct": 95.3529264004, "failures_per_month": 0.1458333333, "total_cost_Jt": 830.25, "score": 45.4530775667, "category": "MEDIUM"}, {"machineID": 99, "model": "model4", "age": 19, "mtbf_hours": 388.1, "mttr_hours": 19.4904761905, "availability_pct": 95.2181227656, "failures_per_month": 0.0921052632, "total_cost_Jt": 1329.76, "score": 44.0903704429, "category": "MEDIUM"}, {"machineID": 96, "model": "model2", "age": 17, "mtbf_hours": 401.2105263158, "mttr_hours": 21.125, "availability_pct": 94.9980528079, "failures_per_month": 0.0980392157, "total_cost_Jt": 981.46, "score": 43.4511285131, "category": "MEDIUM"}, {"machineID": 68, "model": "model1", "age": 17, "mtbf_hours": 370.0454545455, "mttr_hours": 17.152173913, "availability_pct": 95.5701758863, "failures_per_month": 0.112745098, "total_cost_Jt": 1100.48, "score": 42.3658776224, "category": "MEDIUM"}, {"machineID": 23, "model": "model1", "age": 13, "mtbf_hours": 401.0555555556, "mttr_hours": 18.0421052632, "availability_pct": 95.6950117002, "failures_per_month": 0.1217948718, "total_cost_Jt": 911.64, "score": 41.9763386533, "category": "MEDIUM"}, {"machineID": 34, "model": "model3", "age": 7, "mtbf_hours": 549.8666666667, "mttr_hours": 15.625, "availability_pct": 97.2369177265, "failures_per_month": 0.1904761905, "total_cost_Jt": 634.37, "score": 41.8983147904, "category": "MEDIUM"}, {"machineID": 83, "model": "model2", "age": 7, "mtbf_hours": 539.5333333333, "mttr_hours": 15.25, "availability_pct": 97.251179139, "failures_per_month": 0.1904761905, "total_cost_Jt": 666.85, "score": 41.877889663, "category": "MEDIUM"}, {"machineID": 97, "model": "model4", "age": 9, "mtbf_hours": 426.0, "mttr_hours": 13.1380952381, "availability_pct": 97.0082087205, "failures_per_month": 0.1944444444, "total_cost_Jt": 635.71, "score": 41.8068911129, "category": "MEDIUM"}, {"machineID": 42, "model": "model4", "age": 11, "mtbf_hours": 375.8571428571, "mttr_hours": 13.6181818182, "availability_pct": 96.5034545309, "failures_per_month": 0.1666666667, "total_cost_Jt": 768.56, "score": 41.5915182643, "category": "MEDIUM"}, {"machineID": 95, "model": "model1", "age": 11, "mtbf_hours": 423.6842105263, "mttr_hours": 15.73, "availability_pct": 96.4202341155, "failures_per_month": 0.1515151515, "total_cost_Jt": 772.21, "score": 40.9589915177, "category": "MEDIUM"}, {"machineID": 85, "model": "model4", "age": 12, "mtbf_hours": 415.7368421053, "mttr_hours": 15.96, "availability_pct": 96.3029611423, "failures_per_month": 0.1388888889, "total_cost_Jt": 766.25, "score": 39.8518071105, "category": "MEDIUM"}, {"machineID": 72, "model": "model3", "age": 20, "mtbf_hours": 386.9, "mttr_hours": 17.4761904762, "availability_pct": 95.6782345529, "failures_per_month": 0.0875, "total_cost_Jt": 1125.02, "score": 39.3250347683, "category": "MEDIUM"}, {"machineID": 45, "model": "model4", "age": 7, "mtbf_hours": 481.5333333333, "mttr_hours": 13.2625, "availability_pct": 97.3196015191, "failures_per_month": 0.1904761905, "total_cost_Jt": 478.96, "score": 38.8622721531, "category": "MEDIUM"}, {"machineID": 64, "model": "model4", "age": 10, "mtbf_hours": 453.3888888889, "mttr_hours": 14.1315789474, "availability_pct": 96.9773347009, "failures_per_month": 0.1583333333, "total_cost_Jt": 735.23, "score": 38.7869200384, "category": "MEDIUM"}, {"machineID": 82, "model": "model4", "age": 9, "mtbf_hours": 488.2666666667, "mttr_hours": 15.91875, "availability_pct": 96.8426794045, "failures_per_month": 0.1481481481, "total_cost_Jt": 634.72, "score": 38.1387115767, "category": "MEDIUM"}, {"machineID": 75, "model": "model2", "age": 10, "mtbf_hours": 510.0, "mttr_hours": 16.1294117647, "availability_pct": 96.9343261555, "failures_per_month": 0.1416666667, "total_cost_Jt": 704.33, "score": 37.7912095801, "category": "MEDIUM"}, {"machineID": 35, "model": "model2", "age": 3, "mtbf_hours": 591.1666666667, "mttr_hours": 14.2, "availability_pct": 97.6543141897, "failures_per_month": 0.1944444444, "total_cost_Jt": 233.08, "score": 36.5941556728, "category": "MEDIUM"}, {"machineID": 66, "model": "model3", "age": 1, "mtbf_hours": 685.0, "mttr_hours": 18.7, "availability_pct": 97.3426175927, "failures_per_month": 0.1666666667, "total_cost_Jt": 79.02, "score": 36.3211410373, "category": "MEDIUM"}, {"machineID": 65, "model": "model4", "age": 6, "mtbf_hours": 694.8333333333, "mttr_hours": 14.1307692308, "availability_pct": 98.0068427753, "failures_per_month": 0.1805555556, "total_cost_Jt": 527.61, "score": 36.1493691505, "category": "MEDIUM"}, {"machineID": 15, "model": "model2", "age": 9, "mtbf_hours": 594.7857142857, "mttr_hours": 17.1533333333, "availability_pct": 97.196888579, "failures_per_month": 0.1388888889, "total_cost_Jt": 500.08, "score": 35.6522462845, "category": "MEDIUM"}, {"machineID": 33, "model": "model3", "age": 12, "mtbf_hours": 512.4285714286, "mttr_hours": 19.12, "availability_pct": 96.4029627718, "failures_per_month": 0.1041666667, "total_cost_Jt": 547.77, "score": 35.4839555717, "category": "MEDIUM"}, {"machineID": 98, "model": "model2", "age": 7, "mtbf_hours": 555.25, "mttr_hours": 13.8307692308, "availability_pct": 97.5696298349, "failures_per_month": 0.1547619048, "total_cost_Jt": 499.45, "score": 34.0631584981, "category": "MEDIUM"}, {"machineID": 29, "model": "model2", "age": 3, "mtbf_hours": 891.3333333333, "mttr_hours": 13.6142857143, "availability_pct": 98.4955719615, "failures_per_month": 0.1944444444, "total_cost_Jt": 228.42, "score": 33.168519183, "category": "MEDIUM"}, {"machineID": 41, "model": "model1", "age": 8, "mtbf_hours": 549.0769230769, "mttr_hours": 13.9, "availability_pct": 97.5309822783, "failures_per_month": 0.1458333333, "total_cost_Jt": 438.21, "score": 32.6215173849, "category": "MEDIUM"}, {"machineID": 17, "model": "model1", "age": 4, "mtbf_hours": 1000.5, "mttr_hours": 13.5333333333, "availability_pct": 98.6653956149, "failures_per_month": 0.1875, "total_cost_Jt": 283.48, "score": 32.115836625, "category": "MEDIUM"}, {"machineID": 48, "model": "model2", "age": 5, "mtbf_hours": 700.5, "mttr_hours": 15.2222222222, "availability_pct": 97.873166188, "failures_per_month": 0.15, "total_cost_Jt": 270.23, "score": 31.4797941812, "category": "MEDIUM"}, {"machineID": 56, "model": "model4", "age": 6, "mtbf_hours": 824.6666666667, "mttr_hours": 16.1, "availability_pct": 98.0850810768, "failures_per_month": 0.1388888889, "total_cost_Jt": 359.37, "score": 30.9559946225, "category": "MEDIUM"}, {"machineID": 18, "model": "model1", "age": 13, "mtbf_hours": 515.7142857143, "mttr_hours": 16.3733333333, "availability_pct": 96.9228125694, "failures_per_month": 0.0961538462, "total_cost_Jt": 524.11, "score": 30.8557176109, "category": "MEDIUM"}, {"machineID": 53, "model": "model4", "age": 5, "mtbf_hours": 847.6666666667, "mttr_hours": 13.9, "availability_pct": 98.3866599605, "failures_per_month": 0.1666666667, "total_cost_Jt": 280.58, "score": 30.827283273, "category": "MEDIUM"}, {"machineID": 11, "model": "model4", "age": 8, "mtbf_hours": 663.7692307692, "mttr_hours": 13.6714285714, "availability_pct": 97.9819002029, "failures_per_month": 0.1458333333, "total_cost_Jt": 433.22, "score": 30.82540371, "category": "MEDIUM"}, {"machineID": 70, "model": "model3", "age": 5, "mtbf_hours": 828.6, "mttr_hours": 11.8181818182, "availability_pct": 98.5937736625, "failures_per_month": 0.1833333333, "total_cost_Jt": 312.72, "score": 30.7121102691, "category": "MEDIUM"}, {"machineID": 16, "model": "model3", "age": 7, "mtbf_hours": 798.5, "mttr_hours": 15.9, "availability_pct": 98.0476424361, "failures_per_month": 0.130952381, "total_cost_Jt": 450.67, "score": 30.7040560546, "category": "MEDIUM"}, {"machineID": 52, "model": "model2", "age": 12, "mtbf_hours": 553.4666666667, "mttr_hours": 13.625, "availability_pct": 97.5973901926, "failures_per_month": 0.1111111111, "total_cost_Jt": 712.74, "score": 30.3063608371, "category": "MEDIUM"}, {"machineID": 26, "model": "model2", "age": 19, "mtbf_hours": 590.2142857143, "mttr_hours": 18.7133333333, "availability_pct": 96.9268378132, "failures_per_month": 0.0657894737, "total_cost_Jt": 690.75, "score": 30.294193752, "category": "MEDIUM"}, {"machineID": 30, "model": "model4", "age": 4, "mtbf_hours": 745.1666666667, "mttr_hours": 14.8, "availability_pct": 98.0525461643, "failures_per_month": 0.1458333333, "total_cost_Jt": 237.79, "score": 29.7696423715, "category": "MEDIUM"}, {"machineID": 94, "model": "model1", "age": 3, "mtbf_hours": 1166.8333333333, "mttr_hours": 11.5857142857, "availability_pct": 99.0168425817, "failures_per_month": 0.1944444444, "total_cost_Jt": 221.06, "score": 29.3677889533, "category": "MEDIUM"}, {"machineID": 78, "model": "model4", "age": 3, "mtbf_hours": 1211.0, "mttr_hours": 14.2, "availability_pct": 98.8410055501, "failures_per_month": 0.1666666667, "total_cost_Jt": 169.99, "score": 28.5929049523, "category": "MEDIUM"}, {"machineID": 69, "model": "model2", "age": 10, "mtbf_hours": 614.5833333333, "mttr_hours": 15.2384615385, "availability_pct": 97.5805121921, "failures_per_month": 0.1083333333, "total_cost_Jt": 390.23, "score": 28.3461313887, "category": "MEDIUM"}, {"machineID": 81, "model": "model2", "age": 18, "mtbf_hours": 659.8333333333, "mttr_hours": 19.3153846154, "availability_pct": 97.1559418276, "failures_per_month": 0.0601851852, "total_cost_Jt": 549.26, "score": 28.2979729903, "category": "MEDIUM"}, {"machineID": 2, "model": "model2", "age": 9, "mtbf_hours": 683.9090909091, "mttr_hours": 14.8333333333, "availability_pct": 97.8771385823, "failures_per_month": 0.1111111111, "total_cost_Jt": 429.02, "score": 27.7495196011, "category": "MEDIUM"}, {"machineID": 58, "model": "model4", "age": 13, "mtbf_hours": 679.75, "mttr_hours": 15.7230769231, "availability_pct": 97.7392256516, "failures_per_month": 0.0833333333, "total_cost_Jt": 618.24, "score": 27.0994447648, "category": "MEDIUM"}, {"machineID": 6, "model": "model1", "age": 2, "mtbf_hours": 991.6666666667, "mttr_hours": 12.375, "availability_pct": 98.7674814292, "failures_per_month": 0.1666666667, "total_cost_Jt": 96.78, "score": 26.5711739379, "category": "MEDIUM"}, {"machineID": 1, "model": "model1", "age": 4, "mtbf_hours": 751.4285714286, "mttr_hours": 10.1125, "availability_pct": 98.6721005105, "failures_per_month": 0.1666666667, "total_cost_Jt": 229.36, "score": 26.4292677667, "category": "MEDIUM"}, {"machineID": 80, "model": "model4", "age": 5, "mtbf_hours": 808.0, "mttr_hours": 13.6, "availability_pct": 98.3446932814, "failures_per_month": 0.1333333333, "total_cost_Jt": 253.53, "score": 26.4035760511, "category": "MEDIUM"}, {"machineID": 43, "model": "model1", "age": 9, "mtbf_hours": 692.5555555556, "mttr_hours": 15.39, "availability_pct": 97.8261040162, "failures_per_month": 0.0925925926, "total_cost_Jt": 364.95, "score": 25.5263822919, "category": "MEDIUM"}, {"machineID": 47, "model": "model3", "age": 5, "mtbf_hours": 644.3333333333, "mttr_hours": 12.9285714286, "availability_pct": 98.0329650426, "failures_per_month": 0.1166666667, "total_cost_Jt": 264.47, "score": 25.094112895, "category": "MEDIUM"}, {"machineID": 21, "model": "model4", "age": 2, "mtbf_hours": 2063.6666666667, "mttr_hours": 13.075, "availability_pct": 99.3704079708, "failures_per_month": 0.1666666667, "total_cost_Jt": 98.41, "score": 24.9975130739, "category": "LOW"}, {"machineID": 71, "model": "model1", "age": 6, "mtbf_hours": 803.2857142857, "mttr_hours": 14.075, "availability_pct": 98.2779940663, "failures_per_month": 0.1111111111, "total_cost_Jt": 327.17, "score": 24.9255784445, "category": "LOW"}, {"machineID": 54, "model": "model1", "age": 3, "mtbf_hours": 1950.0, "mttr_hours": 14.58, "availability_pct": 99.2578566411, "failures_per_month": 0.1388888889, "total_cost_Jt": 140.59, "score": 23.9343593075, "category": "LOW"}, {"machineID": 4, "model": "model1", "age": 4, "mtbf_hours": 1568.5, "mttr_hours": 17.48, "availability_pct": 98.8978423435, "failures_per_month": 0.1041666667, "total_cost_Jt": 137.83, "score": 23.8025951053, "category": "LOW"}, {"machineID": 84, "model": "model4", "age": 10, "mtbf_hours": 640.4545454545, "mttr_hours": 11.525, "availability_pct": 98.2323065071, "failures_per_month": 0.1, "total_cost_Jt": 443.59, "score": 22.8990385041, "category": "LOW"}, {"machineID": 88, "model": "model1", "age": 8, "mtbf_hours": 861.625, "mttr_hours": 14.2111111111, "availability_pct": 98.3774234779, "failures_per_month": 0.09375, "total_cost_Jt": 324.07, "score": 22.5406531417, "category": "LOW"}, {"machineID": 13, "model": "model2", "age": 1, "mtbf_hours": 1389.0, "mttr_hours": 10.65, "availability_pct": 99.2390954882, "failures_per_month": 0.1666666667, "total_cost_Jt": 30.35, "score": 22.5274988692, "category": "LOW"}, {"machineID": 5, "model": "model4", "age": 19, "mtbf_hours": 772.0, "mttr_hours": 16.3333333333, "availability_pct": 97.9281183932, "failures_per_month": 0.0526315789, "total_cost_Jt": 465.05, "score": 21.9451480933, "category": "LOW"}, {"machineID": 46, "model": "model4", "age": 13, "mtbf_hours": 625.7142857143, "mttr_hours": 16.0375, "availability_pct": 97.5009808532, "failures_per_month": 0.0512820513, "total_cost_Jt": 333.12, "score": 21.6997764728, "category": "LOW"}, {"machineID": 74, "model": "model3", "age": 4, "mtbf_hours": 1252.0, "mttr_hours": 10.4857142857, "availability_pct": 99.1694389753, "failures_per_month": 0.1458333333, "total_cost_Jt": 161.73, "score": 21.2623136788, "category": "LOW"}, {"machineID": 3, "model": "model2", "age": 8, "mtbf_hours": 922.5, "mttr_hours": 18.3, "availability_pct": 98.0548469388, "failures_per_month": 0.0520833333, "total_cost_Jt": 203.67, "score": 21.0700479787, "category": "LOW"}, {"machineID": 79, "model": "model2", "age": 3, "mtbf_hours": 1616.25, "mttr_hours": 11.82, "availability_pct": 99.2739869907, "failures_per_month": 0.1388888889, "total_cost_Jt": 109.49, "score": 20.7631920139, "category": "LOW"}, {"machineID": 37, "model": "model4", "age": 6, "mtbf_hours": 974.0, "mttr_hours": 12.5714285714, "availability_pct": 98.7257457284, "failures_per_month": 0.0972222222, "total_cost_Jt": 273.42, "score": 19.8866181413, "category": "LOW"}, {"machineID": 8, "model": "model1", "age": 8, "mtbf_hours": 1722.6, "mttr_hours": 16.8833333333, "availability_pct": 99.0294052832, "failures_per_month": 0.0625, "total_cost_Jt": 253.6, "score": 18.6776054749, "category": "LOW"}, {"machineID": 7, "model": "model2", "age": 3, "mtbf_hours": 2621.3333333333, "mttr_hours": 13.75, "availability_pct": 99.4781948705, "failures_per_month": 0.1111111111, "total_cost_Jt": 83.1, "score": 18.3937988537, "category": "LOW"}, {"machineID": 28, "model": "model3", "age": 8, "mtbf_hours": 1556.0, "mttr_hours": 17.96, "availability_pct": 98.8589290706, "failures_per_month": 0.0520833333, "total_cost_Jt": 151.98, "score": 18.1438153985, "category": "LOW"}, {"machineID": 100, "model": "model4", "age": 8, "mtbf_hours": 881.0, "mttr_hours": 13.4857142857, "availability_pct": 98.4923499537, "failures_per_month": 0.0729166667, "total_cost_Jt": 214.94, "score": 18.033590853, "category": "LOW"}, {"machineID": 31, "model": "model4", "age": 9, "mtbf_hours": 953.8333333333, "mttr_hours": 14.5714285714, "availability_pct": 98.4953163032, "failures_per_month": 0.0648148148, "total_cost_Jt": 220.35, "score": 18.0171519729, "category": "LOW"}, {"machineID": 92, "model": "model1", "age": 1, "mtbf_hours": 4092.0, "mttr_hours": 8.7, "availability_pct": 99.7878411003, "failures_per_month": 0.1666666667, "total_cost_Jt": 34.39, "score": 17.9360605187, "category": "LOW"}, {"machineID": 44, "model": "model3", "age": 7, "mtbf_hours": 1351.0, "mttr_hours": 11.6571428571, "availability_pct": 99.1445285472, "failures_per_month": 0.0833333333, "total_cost_Jt": 215.43, "score": 15.2176828486, "category": "LOW"}, {"machineID": 62, "model": "model3", "age": 4, "mtbf_hours": 1674.0, "mttr_hours": 12.375, "availability_pct": 99.2661774516, "failures_per_month": 0.0833333333, "total_cost_Jt": 91.86, "score": 14.3740749637, "category": "LOW"}, {"machineID": 27, "model": "model1", "age": 3, "mtbf_hours": 2075.6666666667, "mttr_hours": 9.125, "availability_pct": 99.5623063855, "failures_per_month": 0.1111111111, "total_cost_Jt": 86.96, "score": 13.1990184045, "category": "LOW"}, {"machineID": 87, "model": "model2", "age": 4, "mtbf_hours": 3073.0, "mttr_hours": 16.3, "availability_pct": 99.4723723821, "failures_per_month": 0.0416666667, "total_cost_Jt": 46.37, "score": 12.4303973992, "category": "LOW"}, {"machineID": 93, "model": "model2", "age": 2, "mtbf_hours": 4907.0, "mttr_hours": 10.75, "availability_pct": 99.7814040974, "failures_per_month": 0.0833333333, "total_cost_Jt": 75.45, "score": 10.3909759772, "category": "LOW"}, {"machineID": 76, "model": "model2", "age": 2, "mtbf_hours": 3141.0, "mttr_hours": 9.3, "availability_pct": 99.70479002, "failures_per_month": 0.0833333333, "total_cost_Jt": 27.74, "score": 8.7315683892, "category": "LOW"}, {"machineID": 55, "model": "model2", "age": 4, "mtbf_hours": 4520.0, "mttr_hours": 6.8, "availability_pct": 99.8497835115, "failures_per_month": 0.0416666667, "total_cost_Jt": 42.15, "score": 0.2052016303, "category": "LOW"}], "decision": [{"machineID": 1, "model": "model1", "age": 4, "avg_repair_cost_Jt": 28.67, "avg_replacement_cost_Jt": 80.4475, "cost_ratio": 0.356381491, "failures_per_month": 0.1666666667, "avg_downtime_hours": 10.1125, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2338318219}, {"machineID": 2, "model": "model2", "age": 9, "avg_repair_cost_Jt": 35.7516666667, "avg_replacement_cost_Jt": 96.5166666667, "cost_ratio": 0.3704196166, "failures_per_month": 0.1111111111, "avg_downtime_hours": 14.8333333333, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2249700869}, {"machineID": 3, "model": "model2", "age": 8, "avg_repair_cost_Jt": 40.734, "avg_replacement_cost_Jt": 75.372, "cost_ratio": 0.5404394205, "failures_per_month": 0.0520833333, "avg_downtime_hours": 18.3, "total_score": -10, "decision": "REPAIR", "roi_years": 0.1541955123}, {"machineID": 4, "model": "model1", "age": 4, "avg_repair_cost_Jt": 27.566, "avg_replacement_cost_Jt": 69.236, "cost_ratio": 0.3981454735, "failures_per_month": 0.1041666667, "avg_downtime_hours": 17.48, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2093037317}, {"machineID": 5, "model": "model4", "age": 19, "avg_repair_cost_Jt": 38.7541666667, "avg_replacement_cost_Jt": 113.4208333333, "cost_ratio": 0.3416847287, "failures_per_month": 0.0526315789, "avg_downtime_hours": 16.3333333333, "total_score": 0, "decision": "REVIEW", "roi_years": 0.2438895459}, {"machineID": 6, "model": "model1", "age": 2, "avg_repair_cost_Jt": 24.195, "avg_replacement_cost_Jt": 64.33, "cost_ratio": 0.3761075703, "failures_per_month": 0.1666666667, "avg_downtime_hours": 12.375, "total_score": -30, "decision": "REPAIR", "roi_years": 0.221567817}, {"machineID": 7, "model": "model2", "age": 3, "avg_repair_cost_Jt": 20.775, "avg_replacement_cost_Jt": 73.3475, "cost_ratio": 0.2832407376, "failures_per_month": 0.1111111111, "avg_downtime_hours": 13.75, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2942137986}, {"machineID": 8, "model": "model1", "age": 8, "avg_repair_cost_Jt": 42.2666666667, "avg_replacement_cost_Jt": 125.6866666667, "cost_ratio": 0.3362860022, "failures_per_month": 0.0625, "avg_downtime_hours": 16.8833333333, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2478049422}, {"machineID": 9, "model": "model2", "age": 18, "avg_repair_cost_Jt": 45.414, "avg_replacement_cost_Jt": 127.0752, "cost_ratio": 0.3573789378, "failures_per_month": 0.1157407407, "avg_downtime_hours": 19.864, "total_score": 0, "decision": "REVIEW", "roi_years": 0.2331791958}, {"machineID": 10, "model": "model4", "age": 18, "avg_repair_cost_Jt": 52.4774358974, "avg_replacement_cost_Jt": 118.2671794872, "cost_ratio": 0.4437193491, "failures_per_month": 0.1805555556, "avg_downtime_hours": 19.3025641026, "total_score": 0, "decision": "REVIEW", "roi_years": 0.1878063995}, {"machineID": 11, "model": "model4", "age": 8, "avg_repair_cost_Jt": 30.9442857143, "avg_replacement_cost_Jt": 86.2442857143, "cost_ratio": 0.3587980984, "failures_per_month": 0.1458333333, "avg_downtime_hours": 13.6714285714, "total_score": -30, "decision": "REPAIR", "roi_years": 0.232256898}, {"machineID": 12, "model": "model3", "age": 19, "avg_repair_cost_Jt": 55.2821428571, "avg_replacement_cost_Jt": 116.4921428571, "cost_ratio": 0.4745568371, "failures_per_month": 0.1228070175, "avg_downtime_hours": 22.2178571429, "total_score": 15, "decision": "REVIEW", "roi_years": 0.1756024291}, {"machineID": 13, "model": "model2", "age": 1, "avg_repair_cost_Jt": 15.175, "avg_replacement_cost_Jt": 90.38, "cost_ratio": 0.1679021908, "failures_per_month": 0.1666666667, "avg_downtime_hours": 10.65, "total_score": -30, "decision": "REPAIR", "roi_years": 0.4963207029}, {"machineID": 14, "model": "model3", "age": 14, "avg_repair_cost_Jt": 45.8083870968, "avg_replacement_cost_Jt": 110.6880645161, "cost_ratio": 0.4138511889, "failures_per_month": 0.1845238095, "avg_downtime_hours": 17.8096774194, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2013606233}, {"machineID": 15, "model": "model2", "age": 9, "avg_repair_cost_Jt": 33.3386666667, "avg_replacement_cost_Jt": 100.88, "cost_ratio": 0.3304784563, "failures_per_month": 0.1388888889, "avg_downtime_hours": 17.1533333333, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2521596545}, {"machineID": 16, "model": "model3", "age": 7, "avg_repair_cost_Jt": 40.97, "avg_replacement_cost_Jt": 98.5518181818, "cost_ratio": 0.4157203871, "failures_per_month": 0.130952381, "avg_downtime_hours": 15.9, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2004552481}, {"machineID": 17, "model": "model1", "age": 4, "avg_repair_cost_Jt": 31.4977777778, "avg_replacement_cost_Jt": 91.4133333333, "cost_ratio": 0.3445643718, "failures_per_month": 0.1875, "avg_downtime_hours": 13.5333333333, "total_score": -30, "decision": "REPAIR", "roi_years": 0.241851277}, {"machineID": 18, "model": "model1", "age": 13, "avg_repair_cost_Jt": 34.9406666667, "avg_replacement_cost_Jt": 92.7306666667, "cost_ratio": 0.3767973198, "failures_per_month": 0.0961538462, "avg_downtime_hours": 16.3733333333, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2211622242}, {"machineID": 19, "model": "model3", "age": 12, "avg_repair_cost_Jt": 35.8088888889, "avg_replacement_cost_Jt": 107.1607407407, "cost_ratio": 0.3341605204, "failures_per_month": 0.1875, "avg_downtime_hours": 17.3111111111, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2493811454}, {"machineID": 20, "model": "model3", "age": 20, "avg_repair_cost_Jt": 51.2934782609, "avg_replacement_cost_Jt": 113.4256521739, "cost_ratio": 0.4522211447, "failures_per_month": 0.1916666667, "avg_downtime_hours": 18.7282608696, "total_score": 0, "decision": "REVIEW", "roi_years": 0.1842756234}, {"machineID": 21, "model": "model4", "age": 2, "avg_repair_cost_Jt": 24.6025, "avg_replacement_cost_Jt": 63.8075, "cost_ratio": 0.3855737962, "failures_per_month": 0.1666666667, "avg_downtime_hours": 13.075, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2161281035}, {"machineID": 22, "model": "model1", "age": 18, "avg_repair_cost_Jt": 49.5745833333, "avg_replacement_cost_Jt": 116.4791666667, "cost_ratio": 0.4256090145, "failures_per_month": 0.1111111111, "avg_downtime_hours": 19.5416666667, "total_score": 0, "decision": "REVIEW", "roi_years": 0.1957978579}, {"machineID": 23, "model": "model1", "age": 13, "avg_repair_cost_Jt": 47.9810526316, "avg_replacement_cost_Jt": 95.6510526316, "cost_ratio": 0.501625976, "failures_per_month": 0.1217948718, "avg_downtime_hours": 18.0421052632, "total_score": -10, "decision": "REPAIR", "roi_years": 0.1661264315}, {"machineID": 24, "model": "model3", "age": 18, "avg_repair_cost_Jt": 53.0043478261, "avg_replacement_cost_Jt": 101.0534782609, "cost_ratio": 0.5245177973, "failures_per_month": 0.1064814815, "avg_downtime_hours": 19.9, "total_score": 20, "decision": "REVIEW", "roi_years": 0.1588760834}, {"machineID": 25, "model": "model3", "age": 20, "avg_repair_cost_Jt": 60.3355555556, "avg_replacement_cost_Jt": 114.2880555556, "cost_ratio": 0.527925296, "failures_per_month": 0.15, "avg_downtime_hours": 18.95, "total_score": 20, "decision": "REVIEW", "roi_years": 0.1578506163}, {"machineID": 26, "model": "model2", "age": 19, "avg_repair_cost_Jt": 46.05, "avg_replacement_cost_Jt": 102.6246666667, "cost_ratio": 0.4487225293, "failures_per_month": 0.0657894737, "avg_downtime_hours": 18.7133333333, "total_score": 0, "decision": "REVIEW", "roi_years": 0.1857123899}, {"machineID": 27, "model": "model1", "age": 3, "avg_repair_cost_Jt": 21.74, "avg_replacement_cost_Jt": 72.9825, "cost_ratio": 0.2978796287, "failures_per_month": 0.1111111111, "avg_downtime_hours": 9.125, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2797550598}, {"machineID": 28, "model": "model3", "age": 8, "avg_repair_cost_Jt": 30.396, "avg_replacement_cost_Jt": 88.556, "cost_ratio": 0.3432404354, "failures_per_month": 0.0520833333, "avg_downtime_hours": 17.96, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2427841383}, {"machineID": 29, "model": "model2", "age": 3, "avg_repair_cost_Jt": 32.6314285714, "avg_replacement_cost_Jt": 78.4042857143, "cost_ratio": 0.41619445, "failures_per_month": 0.1944444444, "avg_downtime_hours": 13.6142857143, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2002269212}, {"machineID": 30, "model": "model4", "age": 4, "avg_repair_cost_Jt": 33.97, "avg_replacement_cost_Jt": 89.8528571429, "cost_ratio": 0.3780625467, "failures_per_month": 0.1458333333, "avg_downtime_hours": 14.8, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2204220811}, {"machineID": 31, "model": "model4", "age": 9, "avg_repair_cost_Jt": 31.4785714286, "avg_replacement_cost_Jt": 93.9414285714, "cost_ratio": 0.3350872124, "failures_per_month": 0.0648148148, "avg_downtime_hours": 14.5714285714, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2486914757}, {"machineID": 32, "model": "model2", "age": 12, "avg_repair_cost_Jt": 39.5357142857, "avg_replacement_cost_Jt": 98.34, "cost_ratio": 0.4020308551, "failures_per_month": 0.1458333333, "avg_downtime_hours": 18.5, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2072809395}, {"machineID": 33, "model": "model3", "age": 12, "avg_repair_cost_Jt": 36.518, "avg_replacement_cost_Jt": 100.2866666667, "cost_ratio": 0.3641361431, "failures_per_month": 0.1041666667, "avg_downtime_hours": 19.12, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2288521338}, {"machineID": 34, "model": "model3", "age": 7, "avg_repair_cost_Jt": 39.648125, "avg_replacement_cost_Jt": 87.305, "cost_ratio": 0.4541334975, "failures_per_month": 0.1904761905, "avg_downtime_hours": 15.625, "total_score": -30, "decision": "REPAIR", "roi_years": 0.1834996401}, {"machineID": 35, "model": "model2", "age": 3, "avg_repair_cost_Jt": 33.2971428571, "avg_replacement_cost_Jt": 82.4928571429, "cost_ratio": 0.4036366785, "failures_per_month": 0.1944444444, "avg_downtime_hours": 14.2, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2064562954}, {"machineID": 36, "model": "model2", "age": 18, "avg_repair_cost_Jt": 52.2407317073, "avg_replacement_cost_Jt": 114.4580487805, "cost_ratio": 0.4564181573, "failures_per_month": 0.1898148148, "avg_downtime_hours": 17.9292682927, "total_score": 0, "decision": "REVIEW", "roi_years": 0.182581109}, {"machineID": 37, "model": "model4", "age": 6, "avg_repair_cost_Jt": 39.06, "avg_replacement_cost_Jt": 93.9414285714, "cost_ratio": 0.4157909944, "failures_per_month": 0.0972222222, "avg_downtime_hours": 12.5714285714, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2004212079}, {"machineID": 38, "model": "model3", "age": 13, "avg_repair_cost_Jt": 40.8232142857, "avg_replacement_cost_Jt": 99.1535714286, "cost_ratio": 0.4117170335, "failures_per_month": 0.1794871795, "avg_downtime_hours": 16.4071428571, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2024043859}, {"machineID": 39, "model": "model2", "age": 18, "avg_repair_cost_Jt": 52.2844117647, "avg_replacement_cost_Jt": 121.9367647059, "cost_ratio": 0.4287829999, "failures_per_month": 0.1574074074, "avg_downtime_hours": 21.6176470588, "total_score": 15, "decision": "REVIEW", "roi_years": 0.1943485011}, {"machineID": 40, "model": "model1", "age": 11, "avg_repair_cost_Jt": 44.4008333333, "avg_replacement_cost_Jt": 99.6391666667, "cost_ratio": 0.4456162654, "failures_per_month": 0.1818181818, "avg_downtime_hours": 16.5625, "total_score": -30, "decision": "REPAIR", "roi_years": 0.1870069381}, {"machineID": 41, "model": "model1", "age": 8, "avg_repair_cost_Jt": 31.3007142857, "avg_replacement_cost_Jt": 91.4792857143, "cost_ratio": 0.3421617696, "failures_per_month": 0.1458333333, "avg_downtime_hours": 13.9, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2435495158}, {"machineID": 42, "model": "model4", "age": 11, "avg_repair_cost_Jt": 34.9345454545, "avg_replacement_cost_Jt": 104.4809090909, "cost_ratio": 0.3343629545, "failures_per_month": 0.1666666667, "avg_downtime_hours": 13.6181818182, "total_score": -30, "decision": "REPAIR", "roi_years": 0.249230162}, {"machineID": 43, "model": "model1", "age": 9, "avg_repair_cost_Jt": 36.495, "avg_replacement_cost_Jt": 98.34, "cost_ratio": 0.3711104332, "failures_per_month": 0.0925925926, "avg_downtime_hours": 15.39, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2245513084}, {"machineID": 44, "model": "model3", "age": 7, "avg_repair_cost_Jt": 30.7757142857, "avg_replacement_cost_Jt": 113.5528571429, "cost_ratio": 0.2710254507, "failures_per_month": 0.0833333333, "avg_downtime_hours": 11.6571428571, "total_score": -30, "decision": "REPAIR", "roi_years": 0.3074741989}, {"machineID": 45, "model": "model4", "age": 7, "avg_repair_cost_Jt": 29.935, "avg_replacement_cost_Jt": 82.916875, "cost_ratio": 0.3610242185, "failures_per_month": 0.1904761905, "avg_downtime_hours": 13.2625, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2308247731}, {"machineID": 46, "model": "model4", "age": 13, "avg_repair_cost_Jt": 41.64, "avg_replacement_cost_Jt": 108.31875, "cost_ratio": 0.3844209797, "failures_per_month": 0.0512820513, "avg_downtime_hours": 16.0375, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2167762368}, {"machineID": 47, "model": "model3", "age": 5, "avg_repair_cost_Jt": 37.7814285714, "avg_replacement_cost_Jt": 77.2014285714, "cost_ratio": 0.4893876871, "failures_per_month": 0.1166666667, "avg_downtime_hours": 12.9285714286, "total_score": -30, "decision": "REPAIR", "roi_years": 0.1702808132}, {"machineID": 48, "model": "model2", "age": 5, "avg_repair_cost_Jt": 30.0255555556, "avg_replacement_cost_Jt": 92.3111111111, "cost_ratio": 0.325264805, "failures_per_month": 0.15, "avg_downtime_hours": 15.2222222222, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2562015074}, {"machineID": 49, "model": "model3", "age": 18, "avg_repair_cost_Jt": 55.0188571429, "avg_replacement_cost_Jt": 107.6231428571, "cost_ratio": 0.5112177147, "failures_per_month": 0.162037037, "avg_downtime_hours": 19.0342857143, "total_score": 20, "decision": "REVIEW", "roi_years": 0.163009479}, {"machineID": 50, "model": "model4", "age": 19, "avg_repair_cost_Jt": 54.8039473684, "avg_replacement_cost_Jt": 108.8223684211, "cost_ratio": 0.5036092135, "failures_per_month": 0.1666666667, "avg_downtime_hours": 20.3631578947, "total_score": 35, "decision": "REVIEW", "roi_years": 0.1654722176}, {"machineID": 51, "model": "model4", "age": 19, "avg_repair_cost_Jt": 52.6565625, "avg_replacement_cost_Jt": 110.9403125, "cost_ratio": 0.4746386711, "failures_per_month": 0.1403508772, "avg_downtime_hours": 22.209375, "total_score": 15, "decision": "REVIEW", "roi_years": 0.1755721529}, {"machineID": 52, "model": "model2", "age": 12, "avg_repair_cost_Jt": 44.54625, "avg_replacement_cost_Jt": 108.071875, "cost_ratio": 0.4121909609, "failures_per_month": 0.1111111111, "avg_downtime_hours": 13.625, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2021716662}, {"machineID": 53, "model": "model4", "age": 5, "avg_repair_cost_Jt": 28.058, "avg_replacement_cost_Jt": 78.85, "cost_ratio": 0.3558402029, "failures_per_month": 0.1666666667, "avg_downtime_hours": 13.9, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2341875163}, {"machineID": 54, "model": "model1", "age": 3, "avg_repair_cost_Jt": 28.118, "avg_replacement_cost_Jt": 86.4, "cost_ratio": 0.3254398148, "failures_per_month": 0.1388888889, "avg_downtime_hours": 14.58, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2560637314}, {"machineID": 55, "model": "model2", "age": 4, "avg_repair_cost_Jt": 21.075, "avg_replacement_cost_Jt": 78.255, "cost_ratio": 0.2693118651, "failures_per_month": 0.0416666667, "avg_downtime_hours": 6.8, "total_score": -30, "decision": "REPAIR", "roi_years": 0.309430605}, {"machineID": 56, "model": "model4", "age": 6, "avg_repair_cost_Jt": 35.937, "avg_replacement_cost_Jt": 95.883, "cost_ratio": 0.3748005382, "failures_per_month": 0.1388888889, "avg_downtime_hours": 16.1, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2223404847}, {"machineID": 57, "model": "model1", "age": 20, "avg_repair_cost_Jt": 53.6357692308, "avg_replacement_cost_Jt": 109.8546153846, "cost_ratio": 0.4882432026, "failures_per_month": 0.1083333333, "avg_downtime_hours": 20.9269230769, "total_score": 15, "decision": "REVIEW", "roi_years": 0.1706799662}, {"machineID": 58, "model": "model4", "age": 13, "avg_repair_cost_Jt": 47.5569230769, "avg_replacement_cost_Jt": 103.9246153846, "cost_ratio": 0.4576098059, "failures_per_month": 0.0833333333, "avg_downtime_hours": 15.7230769231, "total_score": -30, "decision": "REPAIR", "roi_years": 0.1821056548}, {"machineID": 59, "model": "model4", "age": 20, "avg_repair_cost_Jt": 55.6354285714, "avg_replacement_cost_Jt": 121.1771428571, "cost_ratio": 0.459124776, "failures_per_month": 0.1458333333, "avg_downtime_hours": 19.1942857143, "total_score": 0, "decision": "REVIEW", "roi_years": 0.1815047623}, {"machineID": 60, "model": "model3", "age": 17, "avg_repair_cost_Jt": 50.9618421053, "avg_replacement_cost_Jt": 108.3426315789, "cost_ratio": 0.4703766316, "failures_per_month": 0.1862745098, "avg_downtime_hours": 19.2263157895, "total_score": 0, "decision": "REVIEW", "roi_years": 0.177162996}, {"machineID": 61, "model": "model1", "age": 18, "avg_repair_cost_Jt": 45.3025, "avg_replacement_cost_Jt": 121.7136363636, "cost_ratio": 0.3722056242, "failures_per_month": 0.2037037037, "avg_downtime_hours": 19.7454545455, "total_score": 0, "decision": "REVIEW", "roi_years": 0.2238905807}, {"machineID": 62, "model": "model3", "age": 4, "avg_repair_cost_Jt": 22.965, "avg_replacement_cost_Jt": 60.97, "cost_ratio": 0.3766606528, "failures_per_month": 0.0833333333, "avg_downtime_hours": 12.375, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2212424704}, {"machineID": 63, "model": "model1", "age": 11, "avg_repair_cost_Jt": 42.3996296296, "avg_replacement_cost_Jt": 95.9862962963, "cost_ratio": 0.4417258636, "failures_per_month": 0.2045454545, "avg_downtime_hours": 17.4666666667, "total_score": -30, "decision": "REPAIR", "roi_years": 0.1886539598}, {"machineID": 64, "model": "model4", "age": 10, "avg_repair_cost_Jt": 38.6963157895, "avg_replacement_cost_Jt": 106.0257894737, "cost_ratio": 0.3649707867, "failures_per_month": 0.1583333333, "avg_downtime_hours": 14.1315789474, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2283287769}, {"machineID": 65, "model": "model4", "age": 6, "avg_repair_cost_Jt": 40.5853846154, "avg_replacement_cost_Jt": 88.7584615385, "cost_ratio": 0.4572565129, "failures_per_month": 0.1805555556, "avg_downtime_hours": 14.1307692308, "total_score": -30, "decision": "REPAIR", "roi_years": 0.1822463562}, {"machineID": 66, "model": "model3", "age": 1, "avg_repair_cost_Jt": 39.51, "avg_replacement_cost_Jt": 86.375, "cost_ratio": 0.4574240232, "failures_per_month": 0.1666666667, "avg_downtime_hours": 18.7, "total_score": -30, "decision": "REPAIR", "roi_years": 0.182179617}, {"machineID": 67, "model": "model2", "age": 17, "avg_repair_cost_Jt": 55.1965517241, "avg_replacement_cost_Jt": 103.0496551724, "cost_ratio": 0.53563063, "failures_per_month": 0.1421568627, "avg_downtime_hours": 19.9620689655, "total_score": 20, "decision": "REVIEW", "roi_years": 0.1555798505}, {"machineID": 68, "model": "model1", "age": 17, "avg_repair_cost_Jt": 47.8469565217, "avg_replacement_cost_Jt": 116.8652173913, "cost_ratio": 0.4094199933, "failures_per_month": 0.112745098, "avg_downtime_hours": 17.152173913, "total_score": 0, "decision": "REVIEW", "roi_years": 0.2035399704}, {"machineID": 69, "model": "model2", "age": 10, "avg_repair_cost_Jt": 30.0176923077, "avg_replacement_cost_Jt": 104.2115384615, "cost_ratio": 0.2880457649, "failures_per_month": 0.1083333333, "avg_downtime_hours": 15.2384615385, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2893058794}, {"machineID": 70, "model": "model3", "age": 5, "avg_repair_cost_Jt": 28.4290909091, "avg_replacement_cost_Jt": 76.0763636364, "cost_ratio": 0.3736915061, "failures_per_month": 0.1833333333, "avg_downtime_hours": 11.8181818182, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2230003411}, {"machineID": 71, "model": "model1", "age": 6, "avg_repair_cost_Jt": 40.89625, "avg_replacement_cost_Jt": 70.76625, "cost_ratio": 0.5779061346, "failures_per_month": 0.1111111111, "avg_downtime_hours": 14.075, "total_score": -10, "decision": "REPAIR", "roi_years": 0.1441987346}, {"machineID": 72, "model": "model3", "age": 20, "avg_repair_cost_Jt": 53.5723809524, "avg_replacement_cost_Jt": 114.3166666667, "cost_ratio": 0.4686314123, "failures_per_month": 0.0875, "avg_downtime_hours": 17.4761904762, "total_score": 0, "decision": "REVIEW", "roi_years": 0.1778227646}, {"machineID": 73, "model": "model1", "age": 16, "avg_repair_cost_Jt": 49.1951724138, "avg_replacement_cost_Jt": 106.3906896552, "cost_ratio": 0.4624011046, "failures_per_month": 0.1510416667, "avg_downtime_hours": 18.475862069, "total_score": 0, "decision": "REVIEW", "roi_years": 0.180218716}, {"machineID": 74, "model": "model3", "age": 4, "avg_repair_cost_Jt": 23.1042857143, "avg_replacement_cost_Jt": 87.5214285714, "cost_ratio": 0.2639843304, "failures_per_month": 0.1458333333, "avg_downtime_hours": 10.4857142857, "total_score": -30, "decision": "REPAIR", "roi_years": 0.3156753025}, {"machineID": 75, "model": "model2", "age": 10, "avg_repair_cost_Jt": 41.4311764706, "avg_replacement_cost_Jt": 102.6929411765, "cost_ratio": 0.4034471697, "failures_per_month": 0.1416666667, "avg_downtime_hours": 16.1294117647, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2065532729}, {"machineID": 76, "model": "model2", "age": 2, "avg_repair_cost_Jt": 13.87, "avg_replacement_cost_Jt": 75.185, "cost_ratio": 0.1844782869, "failures_per_month": 0.0833333333, "avg_downtime_hours": 9.3, "total_score": -30, "decision": "REPAIR", "roi_years": 0.4517243451}, {"machineID": 77, "model": "model1", "age": 19, "avg_repair_cost_Jt": 45.5645652174, "avg_replacement_cost_Jt": 120.9560869565, "cost_ratio": 0.376703367, "failures_per_month": 0.201754386, "avg_downtime_hours": 19.252173913, "total_score": 0, "decision": "REVIEW", "roi_years": 0.2212173838}, {"machineID": 78, "model": "model4", "age": 3, "avg_repair_cost_Jt": 28.3316666667, "avg_replacement_cost_Jt": 85.4366666667, "cost_ratio": 0.3316101596, "failures_per_month": 0.1666666667, "avg_downtime_hours": 14.2, "total_score": -30, "decision": "REPAIR", "roi_years": 0.251299096}, {"machineID": 79, "model": "model2", "age": 3, "avg_repair_cost_Jt": 21.898, "avg_replacement_cost_Jt": 111.912, "cost_ratio": 0.1956715991, "failures_per_month": 0.1388888889, "avg_downtime_hours": 11.82, "total_score": -30, "decision": "REPAIR", "roi_years": 0.4258836423}, {"machineID": 80, "model": "model4", "age": 5, "avg_repair_cost_Jt": 31.69125, "avg_replacement_cost_Jt": 89.55125, "cost_ratio": 0.3538895325, "failures_per_month": 0.1333333333, "avg_downtime_hours": 13.6, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2354783786}, {"machineID": 81, "model": "model2", "age": 18, "avg_repair_cost_Jt": 42.2507692308, "avg_replacement_cost_Jt": 117.4661538462, "cost_ratio": 0.3596846227, "failures_per_month": 0.0601851852, "avg_downtime_hours": 19.3153846154, "total_score": 0, "decision": "REVIEW", "roi_years": 0.2316844482}, {"machineID": 82, "model": "model4", "age": 9, "avg_repair_cost_Jt": 39.67, "avg_replacement_cost_Jt": 100.80625, "cost_ratio": 0.3935271871, "failures_per_month": 0.1481481481, "avg_downtime_hours": 15.91875, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2117600412}, {"machineID": 83, "model": "model2", "age": 7, "avg_repair_cost_Jt": 41.678125, "avg_replacement_cost_Jt": 92.40375, "cost_ratio": 0.4510436535, "failures_per_month": 0.1904761905, "avg_downtime_hours": 15.25, "total_score": -30, "decision": "REPAIR", "roi_years": 0.1847566919}, {"machineID": 84, "model": "model4", "age": 10, "avg_repair_cost_Jt": 36.9658333333, "avg_replacement_cost_Jt": 109.7533333333, "cost_ratio": 0.3368082974, "failures_per_month": 0.1, "avg_downtime_hours": 11.525, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2474206662}, {"machineID": 85, "model": "model4", "age": 12, "avg_repair_cost_Jt": 38.3125, "avg_replacement_cost_Jt": 117.422, "cost_ratio": 0.3262804245, "failures_per_month": 0.1388888889, "avg_downtime_hours": 15.96, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2554040239}, {"machineID": 86, "model": "model4", "age": 17, "avg_repair_cost_Jt": 50.9767647059, "avg_replacement_cost_Jt": 110.0723529412, "cost_ratio": 0.4631205143, "failures_per_month": 0.1666666667, "avg_downtime_hours": 18.7147058824, "total_score": 0, "decision": "REVIEW", "roi_years": 0.1799387649}, {"machineID": 87, "model": "model2", "age": 4, "avg_repair_cost_Jt": 23.185, "avg_replacement_cost_Jt": 88.225, "cost_ratio": 0.2627939926, "failures_per_month": 0.0416666667, "avg_downtime_hours": 16.3, "total_score": -30, "decision": "REPAIR", "roi_years": 0.3171051686}, {"machineID": 88, "model": "model1", "age": 8, "avg_repair_cost_Jt": 36.0077777778, "avg_replacement_cost_Jt": 109.5877777778, "cost_ratio": 0.32857476, "failures_per_month": 0.09375, "avg_downtime_hours": 14.2111111111, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2536206169}, {"machineID": 89, "model": "model1", "age": 11, "avg_repair_cost_Jt": 37.9376, "avg_replacement_cost_Jt": 116.8412, "cost_ratio": 0.3246936868, "failures_per_month": 0.1893939394, "avg_downtime_hours": 13.612, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2566521516}, {"machineID": 90, "model": "model2", "age": 19, "avg_repair_cost_Jt": 62.7421052632, "avg_replacement_cost_Jt": 127.8921052632, "cost_ratio": 0.4905862261, "failures_per_month": 0.0833333333, "avg_downtime_hours": 23.0368421053, "total_score": 15, "decision": "REVIEW", "roi_years": 0.1698648044}, {"machineID": 91, "model": "model2", "age": 19, "avg_repair_cost_Jt": 56.3126470588, "avg_replacement_cost_Jt": 109.0488235294, "cost_ratio": 0.5163984831, "failures_per_month": 0.149122807, "avg_downtime_hours": 19.6117647059, "total_score": 20, "decision": "REVIEW", "roi_years": 0.1613740862}, {"machineID": 92, "model": "model1", "age": 1, "avg_repair_cost_Jt": 17.195, "avg_replacement_cost_Jt": 72.98, "cost_ratio": 0.2356124966, "failures_per_month": 0.1666666667, "avg_downtime_hours": 8.7, "total_score": -30, "decision": "REPAIR", "roi_years": 0.3536880876}, {"machineID": 93, "model": "model2", "age": 2, "avg_repair_cost_Jt": 37.725, "avg_replacement_cost_Jt": 76.905, "cost_ratio": 0.490540277, "failures_per_month": 0.0833333333, "avg_downtime_hours": 10.75, "total_score": -30, "decision": "REPAIR", "roi_years": 0.1698807157}, {"machineID": 94, "model": "model1", "age": 3, "avg_repair_cost_Jt": 31.58, "avg_replacement_cost_Jt": 92.1457142857, "cost_ratio": 0.3427180553, "failures_per_month": 0.1944444444, "avg_downtime_hours": 11.5857142857, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2431541964}, {"machineID": 95, "model": "model1", "age": 11, "avg_repair_cost_Jt": 38.6105, "avg_replacement_cost_Jt": 97.833, "cost_ratio": 0.394657222, "failures_per_month": 0.1515151515, "avg_downtime_hours": 15.73, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2111537017}, {"machineID": 96, "model": "model2", "age": 17, "avg_repair_cost_Jt": 49.073, "avg_replacement_cost_Jt": 114.6335, "cost_ratio": 0.4280860307, "failures_per_month": 0.0980392157, "avg_downtime_hours": 21.125, "total_score": 15, "decision": "REVIEW", "roi_years": 0.194664921}, {"machineID": 97, "model": "model4", "age": 9, "avg_repair_cost_Jt": 30.2719047619, "avg_replacement_cost_Jt": 93.6404761905, "cost_ratio": 0.3232779883, "failures_per_month": 0.1944444444, "avg_downtime_hours": 13.1380952381, "total_score": -30, "decision": "REPAIR", "roi_years": 0.2577760824}, {"machineID": 98, "model": "model2", "age": 7, "avg_repair_cost_Jt": 38.4192307692, "avg_replacement_cost_Jt": 69.9061538462, "cost_ratio": 0.5495829574, "failures_per_month": 0.1547619048, "avg_downtime_hours": 13.8307692308, "total_score": -10, "decision": "REPAIR", "roi_years": 0.1516301265}, {"machineID": 99, "model": "model4", "age": 19, "avg_repair_cost_Jt": 63.3219047619, "avg_replacement_cost_Jt": 122.329047619, "cost_ratio": 0.5176358845, "failures_per_month": 0.0921052632, "avg_downtime_hours": 19.4904761905, "total_score": 20, "decision": "REVIEW", "roi_years": 0.1609883237}, {"machineID": 100, "model": "model4", "age": 8, "avg_repair_cost_Jt": 30.7057142857, "avg_replacement_cost_Jt": 80.6785714286, "cost_ratio": 0.3805931828, "failures_per_month": 0.0729166667, "avg_downtime_hours": 13.4857142857, "total_score": -30, "decision": "REPAIR", "roi_years": 0.218956453}], "lifecycle": [{"machineID": 1, "model": "model1", "age": 4, "avg_mtbf": 2.0, "avg_cost_per_period": 57.34, "mtbf_slope": -1.2, "cost_slope": -27.716, "stage": "STABLE"}, {"machineID": 2, "model": "model2", "age": 9, "avg_mtbf": 3.0, "avg_cost_per_period": 107.255, "mtbf_slope": 0.4, "cost_slope": 8.034, "stage": "DEGRADING"}, {"machineID": 3, "model": "model2", "age": 8, "avg_mtbf": 1.25, "avg_cost_per_period": 50.9175, "mtbf_slope": -0.9, "cost_slope": -27.453, "stage": "STABLE"}, {"machineID": 4, "model": "model1", "age": 4, "avg_mtbf": 1.25, "avg_cost_per_period": 34.4575, "mtbf_slope": 0.3, "cost_slope": 8.397, "stage": "STABLE"}, {"machineID": 5, "model": "model4", "age": 19, "avg_mtbf": 3.0, "avg_cost_per_period": 116.2625, "mtbf_slope": 0.6, "cost_slope": 28.307, "stage": "END_OF_LIFE"}, {"machineID": 6, "model": "model1", "age": 2, "avg_mtbf": 1.0, "avg_cost_per_period": 24.195, "mtbf_slope": -0.4, "cost_slope": -7.572, "stage": "NEW"}, {"machineID": 7, "model": "model2", "age": 3, "avg_mtbf": 1.0, "avg_cost_per_period": 20.775, "mtbf_slope": 0.2, "cost_slope": 0.968, "stage": "STABLE"}, {"machineID": 8, "model": "model1", "age": 8, "avg_mtbf": 1.5, "avg_cost_per_period": 63.4, "mtbf_slope": 0.4, "cost_slope": 11.536, "stage": "DEGRADING"}, {"machineID": 9, "model": "model2", "age": 18, "avg_mtbf": 6.25, "avg_cost_per_period": 283.8375, "mtbf_slope": 0.3, "cost_slope": 36.987, "stage": "CRITICAL"}, {"machineID": 10, "model": "model4", "age": 18, "avg_mtbf": 9.75, "avg_cost_per_period": 511.655, "mtbf_slope": -1.5, "cost_slope": -64.31, "stage": "CRITICAL"}, {"machineID": 11, "model": "model4", "age": 8, "avg_mtbf": 3.5, "avg_cost_per_period": 108.305, "mtbf_slope": -0.6, "cost_slope": -20.148, "stage": "STABLE"}, {"machineID": 12, "model": "model3", "age": 19, "avg_mtbf": 7.0, "avg_cost_per_period": 386.975, "mtbf_slope": 1.2, "cost_slope": 93.336, "stage": "END_OF_LIFE"}, {"machineID": 13, "model": "model2", "age": 1, "avg_mtbf": 0.5, "avg_cost_per_period": 7.5875, "mtbf_slope": -0.4, "cost_slope": -6.587, "stage": "NEW"}, {"machineID": 14, "model": "model3", "age": 14, "avg_mtbf": 7.75, "avg_cost_per_period": 355.015, "mtbf_slope": -0.1, "cost_slope": -53.014, "stage": "AGING"}, {"machineID": 15, "model": "model2", "age": 9, "avg_mtbf": 3.75, "avg_cost_per_period": 125.02, "mtbf_slope": -0.3, "cost_slope": -12.206, "stage": "STABLE"}, {"machineID": 16, "model": "model3", "age": 7, "avg_mtbf": 2.75, "avg_cost_per_period": 112.6675, "mtbf_slope": -0.5, "cost_slope": -18.805, "stage": "STABLE"}, {"machineID": 17, "model": "model1", "age": 4, "avg_mtbf": 2.25, "avg_cost_per_period": 70.87, "mtbf_slope": -0.3, "cost_slope": -30.734, "stage": "STABLE"}, {"machineID": 18, "model": "model1", "age": 13, "avg_mtbf": 3.75, "avg_cost_per_period": 131.0275, "mtbf_slope": 1.5, "cost_slope": 57.785, "stage": "DEGRADING"}, {"machineID": 19, "model": "model3", "age": 12, "avg_mtbf": 6.75, "avg_cost_per_period": 241.71, "mtbf_slope": 1.3, "cost_slope": 47.096, "stage": "DEGRADING"}, {"machineID": 20, "model": "model3", "age": 20, "avg_mtbf": 11.5, "avg_cost_per_period": 589.875, "mtbf_slope": -1.0, "cost_slope": -15.544, "stage": "CRITICAL"}, {"machineID": 21, "model": "model4", "age": 2, "avg_mtbf": 1.0, "avg_cost_per_period": 24.6025, "mtbf_slope": -0.4, "cost_slope": -2.975, "stage": "NEW"}, {"machineID": 22, "model": "model1", "age": 18, "avg_mtbf": 6.0, "avg_cost_per_period": 297.4475, "mtbf_slope": 2.0, "cost_slope": 105.735, "stage": "END_OF_LIFE"}, {"machineID": 23, "model": "model1", "age": 13, "avg_mtbf": 4.75, "avg_cost_per_period": 227.91, "mtbf_slope": -0.3, "cost_slope": 11.632, "stage": "AGING"}, {"machineID": 24, "model": "model3", "age": 18, "avg_mtbf": 5.75, "avg_cost_per_period": 304.775, "mtbf_slope": 0.5, "cost_slope": 17.408, "stage": "END_OF_LIFE"}, {"machineID": 25, "model": "model3", "age": 20, "avg_mtbf": 9.0, "avg_cost_per_period": 543.02, "mtbf_slope": -0.2, "cost_slope": -94.33, "stage": "CRITICAL"}, {"machineID": 26, "model": "model2", "age": 19, "avg_mtbf": 3.75, "avg_cost_per_period": 172.6875, "mtbf_slope": 1.1, "cost_slope": 57.183, "stage": "END_OF_LIFE"}, {"machineID": 27, "model": "model1", "age": 3, "avg_mtbf": 1.0, "avg_cost_per_period": 21.74, "mtbf_slope": 0.6, "cost_slope": 12.078, "stage": "DEGRADING"}, {"machineID": 28, "model": "model3", "age": 8, "avg_mtbf": 1.25, "avg_cost_per_period": 37.995, "mtbf_slope": 0.1, "cost_slope": 1.562, "stage": "STABLE"}, {"machineID": 29, "model": "model2", "age": 3, "avg_mtbf": 1.75, "avg_cost_per_period": 57.105, "mtbf_slope": 0.9, "cost_slope": 15.82, "stage": "DEGRADING"}, {"machineID": 30, "model": "model4", "age": 4, "avg_mtbf": 1.75, "avg_cost_per_period": 59.4475, "mtbf_slope": 0.9, "cost_slope": 17.943, "stage": "DEGRADING"}, {"machineID": 31, "model": "model4", "age": 9, "avg_mtbf": 1.75, "avg_cost_per_period": 55.0875, "mtbf_slope": 0.7, "cost_slope": 14.235, "stage": "DEGRADING"}, {"machineID": 32, "model": "model2", "age": 12, "avg_mtbf": 5.25, "avg_cost_per_period": 207.5625, "mtbf_slope": -0.7, "cost_slope": -21.449, "stage": "AGING"}, {"machineID": 33, "model": "model3", "age": 12, "avg_mtbf": 3.75, "avg_cost_per_period": 136.9425, "mtbf_slope": -1.5, "cost_slope": -45.331, "stage": "AGING"}, {"machineID": 34, "model": "model3", "age": 7, "avg_mtbf": 4.0, "avg_cost_per_period": 158.5925, "mtbf_slope": 1.2, "cost_slope": 48.523, "stage": "DEGRADING"}, {"machineID": 35, "model": "model2", "age": 3, "avg_mtbf": 1.75, "avg_cost_per_period": 58.27, "mtbf_slope": 1.1, "cost_slope": 28.888, "stage": "DEGRADING"}, {"machineID": 36, "model": "model2", "age": 18, "avg_mtbf": 10.25, "avg_cost_per_period": 535.4675, "mtbf_slope": -1.7, "cost_slope": -81.353, "stage": "CRITICAL"}, {"machineID": 37, "model": "model4", "age": 6, "avg_mtbf": 1.75, "avg_cost_per_period": 68.355, "mtbf_slope": 0.5, "cost_slope": 20.442, "stage": "DEGRADING"}, {"machineID": 38, "model": "model3", "age": 13, "avg_mtbf": 7.0, "avg_cost_per_period": 285.7625, "mtbf_slope": -2.0, "cost_slope": -87.857, "stage": "AGING"}, {"machineID": 39, "model": "model2", "age": 18, "avg_mtbf": 8.5, "avg_cost_per_period": 444.4175, "mtbf_slope": 0.8, "cost_slope": -13.829, "stage": "END_OF_LIFE"}, {"machineID": 40, "model": "model1", "age": 11, "avg_mtbf": 6.0, "avg_cost_per_period": 266.405, "mtbf_slope": -0.0, "cost_slope": 7.498, "stage": "AGING"}, {"machineID": 41, "model": "model1", "age": 8, "avg_mtbf": 3.5, "avg_cost_per_period": 109.5525, "mtbf_slope": 1.0, "cost_slope": 27.869, "stage": "DEGRADING"}, {"machineID": 42, "model": "model4", "age": 11, "avg_mtbf": 5.5, "avg_cost_per_period": 192.14, "mtbf_slope": 1.2, "cost_slope": 33.582, "stage": "DEGRADING"}, {"machineID": 43, "model": "model1", "age": 9, "avg_mtbf": 2.5, "avg_cost_per_period": 91.2375, "mtbf_slope": -0.2, "cost_slope": -16.385, "stage": "STABLE"}, {"machineID": 44, "model": "model3", "age": 7, "avg_mtbf": 1.75, "avg_cost_per_period": 53.8575, "mtbf_slope": 0.3, "cost_slope": 20.461, "stage": "STABLE"}, {"machineID": 45, "model": "model4", "age": 7, "avg_mtbf": 4.0, "avg_cost_per_period": 119.74, "mtbf_slope": 0.8, "cost_slope": 10.128, "stage": "DEGRADING"}, {"machineID": 46, "model": "model4", "age": 13, "avg_mtbf": 2.0, "avg_cost_per_period": 83.28, "mtbf_slope": -0.4, "cost_slope": -13.886, "stage": "AGING"}, {"machineID": 47, "model": "model3", "age": 5, "avg_mtbf": 1.75, "avg_cost_per_period": 66.1175, "mtbf_slope": 0.1, "cost_slope": 3.997, "stage": "STABLE"}, {"machineID": 48, "model": "model2", "age": 5, "avg_mtbf": 2.25, "avg_cost_per_period": 67.5575, "mtbf_slope": -1.3, "cost_slope": -42.453, "stage": "STABLE"}, {"machineID": 49, "model": "model3", "age": 18, "avg_mtbf": 8.75, "avg_cost_per_period": 481.415, "mtbf_slope": -1.3, "cost_slope": -55.64, "stage": "CRITICAL"}, {"machineID": 50, "model": "model4", "age": 19, "avg_mtbf": 9.5, "avg_cost_per_period": 520.6375, "mtbf_slope": -1.4, "cost_slope": -96.449, "stage": "CRITICAL"}, {"machineID": 51, "model": "model4", "age": 19, "avg_mtbf": 8.0, "avg_cost_per_period": 421.2525, "mtbf_slope": -1.6, "cost_slope": -107.409, "stage": "CRITICAL"}, {"machineID": 52, "model": "model2", "age": 12, "avg_mtbf": 4.0, "avg_cost_per_period": 178.185, "mtbf_slope": -5.659712656e-16, "cost_slope": 17.88, "stage": "AGING"}, {"machineID": 53, "model": "model4", "age": 5, "avg_mtbf": 2.5, "avg_cost_per_period": 70.145, "mtbf_slope": -4.601293471e-16, "cost_slope": 4.038, "stage": "STABLE"}, {"machineID": 54, "model": "model1", "age": 3, "avg_mtbf": 1.25, "avg_cost_per_period": 35.1475, "mtbf_slope": -0.1, "cost_slope": -3.831, "stage": "STABLE"}, {"machineID": 55, "model": "model2", "age": 4, "avg_mtbf": 0.5, "avg_cost_per_period": 10.5375, "mtbf_slope": 0.2, "cost_slope": 4.689, "stage": "STABLE"}, {"machineID": 56, "model": "model4", "age": 6, "avg_mtbf": 2.5, "avg_cost_per_period": 89.8425, "mtbf_slope": 0.4, "cost_slope": 18.161, "stage": "DEGRADING"}, {"machineID": 57, "model": "model1", "age": 20, "avg_mtbf": 6.5, "avg_cost_per_period": 348.6325, "mtbf_slope": 0.4, "cost_slope": -13.659, "stage": "END_OF_LIFE"}, {"machineID": 58, "model": "model4", "age": 13, "avg_mtbf": 3.25, "avg_cost_per_period": 154.56, "mtbf_slope": 0.1, "cost_slope": 4.29, "stage": "AGING"}, {"machineID": 59, "model": "model4", "age": 20, "avg_mtbf": 8.75, "avg_cost_per_period": 486.81, "mtbf_slope": -0.7, "cost_slope": -35.332, "stage": "CRITICAL"}, {"machineID": 60, "model": "model3", "age": 17, "avg_mtbf": 9.5, "avg_cost_per_period": 484.1375, "mtbf_slope": -1.4, "cost_slope": -114.455, "stage": "CRITICAL"}, {"machineID": 61, "model": "model1", "age": 18, "avg_mtbf": 11.0, "avg_cost_per_period": 498.3275, "mtbf_slope": 2.2, "cost_slope": 123.727, "stage": "END_OF_LIFE"}, {"machineID": 62, "model": "model3", "age": 4, "avg_mtbf": 1.0, "avg_cost_per_period": 22.965, "mtbf_slope": 0.4, "cost_slope": 11.146, "stage": "DEGRADING"}, {"machineID": 63, "model": "model1", "age": 11, "avg_mtbf": 6.75, "avg_cost_per_period": 286.1975, "mtbf_slope": 0.5, "cost_slope": 28.155, "stage": "DEGRADING"}, {"machineID": 64, "model": "model4", "age": 10, "avg_mtbf": 4.75, "avg_cost_per_period": 183.8075, "mtbf_slope": 1.1, "cost_slope": 36.927, "stage": "DEGRADING"}, {"machineID": 65, "model": "model4", "age": 6, "avg_mtbf": 3.25, "avg_cost_per_period": 131.9025, "mtbf_slope": -0.5, "cost_slope": -43.503, "stage": "STABLE"}, {"machineID": 66, "model": "model3", "age": 1, "avg_mtbf": 0.5, "avg_cost_per_period": 19.755, "mtbf_slope": -0.2, "cost_slope": -7.902, "stage": "NEW"}, {"machineID": 67, "model": "model2", "age": 17, "avg_mtbf": 7.25, "avg_cost_per_period": 400.175, "mtbf_slope": 1.5, "cost_slope": 121.66, "stage": "END_OF_LIFE"}, {"machineID": 68, "model": "model1", "age": 17, "avg_mtbf": 5.75, "avg_cost_per_period": 275.12, "mtbf_slope": -1.1, "cost_slope": -20.564, "stage": "CRITICAL"}, {"machineID": 69, "model": "model2", "age": 10, "avg_mtbf": 3.25, "avg_cost_per_period": 97.5575, "mtbf_slope": -0.3, "cost_slope": -9.659, "stage": "AGING"}, {"machineID": 70, "model": "model3", "age": 5, "avg_mtbf": 2.75, "avg_cost_per_period": 78.18, "mtbf_slope": -0.3, "cost_slope": -13.386, "stage": "STABLE"}, {"machineID": 71, "model": "model1", "age": 6, "avg_mtbf": 2.0, "avg_cost_per_period": 81.7925, "mtbf_slope": -0.6, "cost_slope": -22.769, "stage": "STABLE"}, {"machineID": 72, "model": "model3", "age": 20, "avg_mtbf": 5.25, "avg_cost_per_period": 281.255, "mtbf_slope": -0.5, "cost_slope": -86.618, "stage": "CRITICAL"}, {"machineID": 73, "model": "model1", "age": 16, "avg_mtbf": 7.25, "avg_cost_per_period": 356.665, "mtbf_slope": 2.5, "cost_slope": 112.364, "stage": "END_OF_LIFE"}, {"machineID": 74, "model": "model3", "age": 4, "avg_mtbf": 1.75, "avg_cost_per_period": 40.4325, "mtbf_slope": 0.3, "cost_slope": 5.573, "stage": "STABLE"}, {"machineID": 75, "model": "model2", "age": 10, "avg_mtbf": 4.25, "avg_cost_per_period": 176.0825, "mtbf_slope": -1.1, "cost_slope": -18.449, "stage": "AGING"}, {"machineID": 76, "model": "model2", "age": 2, "avg_mtbf": 0.5, "avg_cost_per_period": 6.935, "mtbf_slope": 0.4, "cost_slope": 5.584, "stage": "NEW"}, {"machineID": 77, "model": "model1", "age": 19, "avg_mtbf": 11.5, "avg_cost_per_period": 523.9925, "mtbf_slope": 2.0, "cost_slope": 137.647, "stage": "END_OF_LIFE"}, {"machineID": 78, "model": "model4", "age": 3, "avg_mtbf": 1.5, "avg_cost_per_period": 42.4975, "mtbf_slope": -0.6, "cost_slope": -12.603, "stage": "STABLE"}, {"machineID": 79, "model": "model2", "age": 3, "avg_mtbf": 1.25, "avg_cost_per_period": 27.3725, "mtbf_slope": 0.1, "cost_slope": 2.339, "stage": "STABLE"}, {"machineID": 80, "model": "model4", "age": 5, "avg_mtbf": 2.0, "avg_cost_per_period": 63.3825, "mtbf_slope": 0.6, "cost_slope": 18.783, "stage": "DEGRADING"}, {"machineID": 81, "model": "model2", "age": 18, "avg_mtbf": 3.25, "avg_cost_per_period": 137.315, "mtbf_slope": -1.5, "cost_slope": -53.202, "stage": "CRITICAL"}, {"machineID": 82, "model": "model4", "age": 9, "avg_mtbf": 4.0, "avg_cost_per_period": 158.68, "mtbf_slope": 1.2, "cost_slope": 47.932, "stage": "DEGRADING"}, {"machineID": 83, "model": "model2", "age": 7, "avg_mtbf": 4.0, "avg_cost_per_period": 166.7125, "mtbf_slope": -0.6, "cost_slope": -22.723, "stage": "STABLE"}, {"machineID": 84, "model": "model4", "age": 10, "avg_mtbf": 3.0, "avg_cost_per_period": 110.8975, "mtbf_slope": -0.6, "cost_slope": -17.681, "stage": "AGING"}, {"machineID": 85, "model": "model4", "age": 12, "avg_mtbf": 5.0, "avg_cost_per_period": 191.5625, "mtbf_slope": -0.4, "cost_slope": -45.051, "stage": "AGING"}, {"machineID": 86, "model": "model4", "age": 17, "avg_mtbf": 8.5, "avg_cost_per_period": 433.3025, "mtbf_slope": -1.4, "cost_slope": -127.659, "stage": "CRITICAL"}, {"machineID": 87, "model": "model2", "age": 4, "avg_mtbf": 0.5, "avg_cost_per_period": 11.5925, "mtbf_slope": 0.2, "cost_slope": 5.839, "stage": "STABLE"}, {"machineID": 88, "model": "model1", "age": 8, "avg_mtbf": 2.25, "avg_cost_per_period": 81.0175, "mtbf_slope": -0.1, "cost_slope": 0.953, "stage": "STABLE"}, {"machineID": 89, "model": "model1", "age": 11, "avg_mtbf": 6.25, "avg_cost_per_period": 237.11, "mtbf_slope": -1.1, "cost_slope": -30.426, "stage": "AGING"}, {"machineID": 90, "model": "model2", "age": 19, "avg_mtbf": 4.75, "avg_cost_per_period": 298.025, "mtbf_slope": 0.7, "cost_slope": 64.932, "stage": "END_OF_LIFE"}, {"machineID": 91, "model": "model2", "age": 19, "avg_mtbf": 8.5, "avg_cost_per_period": 478.6575, "mtbf_slope": -1.2, "cost_slope": -71.907, "stage": "CRITICAL"}, {"machineID": 92, "model": "model1", "age": 1, "avg_mtbf": 0.5, "avg_cost_per_period": 8.5975, "mtbf_slope": 0.2, "cost_slope": 0.217, "stage": "NEW"}, {"machineID": 93, "model": "model2", "age": 2, "avg_mtbf": 0.5, "avg_cost_per_period": 18.8625, "mtbf_slope": -0.2, "cost_slope": -7.227, "stage": "NEW"}, {"machineID": 94, "model": "model1", "age": 3, "avg_mtbf": 1.75, "avg_cost_per_period": 55.265, "mtbf_slope": -0.1, "cost_slope": 0.796, "stage": "STABLE"}, {"machineID": 95, "model": "model1", "age": 11, "avg_mtbf": 5.0, "avg_cost_per_period": 193.0525, "mtbf_slope": -0.2, "cost_slope": -8.481, "stage": "AGING"}, {"machineID": 96, "model": "model2", "age": 17, "avg_mtbf": 5.0, "avg_cost_per_period": 245.365, "mtbf_slope": 1.2, "cost_slope": 57.508, "stage": "END_OF_LIFE"}, {"machineID": 97, "model": "model4", "age": 9, "avg_mtbf": 5.25, "avg_cost_per_period": 158.9275, "mtbf_slope": -1.1, "cost_slope": -49.325, "stage": "STABLE"}, {"machineID": 98, "model": "model2", "age": 7, "avg_mtbf": 3.25, "avg_cost_per_period": 124.8625, "mtbf_slope": -1.1, "cost_slope": -49.567, "stage": "STABLE"}, {"machineID": 99, "model": "model4", "age": 19, "avg_mtbf": 5.25, "avg_cost_per_period": 332.44, "mtbf_slope": -1.1, "cost_slope": -38.346, "stage": "CRITICAL"}, {"machineID": 100, "model": "model4", "age": 8, "avg_mtbf": 1.75, "avg_cost_per_period": 53.735, "mtbf_slope": -0.7, "cost_slope": -22.36, "stage": "STABLE"}], "replacement_timeline": [{"machineID": 5, "model": "model4", "age": 19, "avg_mtbf": 3.0, "avg_cost_per_period": 116.2625, "mtbf_slope": 0.6, "cost_slope": 28.307, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 12, "model": "model3", "age": 19, "avg_mtbf": 7.0, "avg_cost_per_period": 386.975, "mtbf_slope": 1.2, "cost_slope": 93.336, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 10, "model": "model4", "age": 18, "avg_mtbf": 9.75, "avg_cost_per_period": 511.655, "mtbf_slope": -1.5, "cost_slope": -64.31, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 9, "model": "model2", "age": 18, "avg_mtbf": 6.25, "avg_cost_per_period": 283.8375, "mtbf_slope": 0.3, "cost_slope": 36.987, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 25, "model": "model3", "age": 20, "avg_mtbf": 9.0, "avg_cost_per_period": 543.02, "mtbf_slope": -0.2, "cost_slope": -94.33, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 24, "model": "model3", "age": 18, "avg_mtbf": 5.75, "avg_cost_per_period": 304.775, "mtbf_slope": 0.5, "cost_slope": 17.408, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 22, "model": "model1", "age": 18, "avg_mtbf": 6.0, "avg_cost_per_period": 297.4475, "mtbf_slope": 2.0, "cost_slope": 105.735, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 20, "model": "model3", "age": 20, "avg_mtbf": 11.5, "avg_cost_per_period": 589.875, "mtbf_slope": -1.0, "cost_slope": -15.544, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 26, "model": "model2", "age": 19, "avg_mtbf": 3.75, "avg_cost_per_period": 172.6875, "mtbf_slope": 1.1, "cost_slope": 57.183, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 50, "model": "model4", "age": 19, "avg_mtbf": 9.5, "avg_cost_per_period": 520.6375, "mtbf_slope": -1.4, "cost_slope": -96.449, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 51, "model": "model4", "age": 19, "avg_mtbf": 8.0, "avg_cost_per_period": 421.2525, "mtbf_slope": -1.6, "cost_slope": -107.409, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 57, "model": "model1", "age": 20, "avg_mtbf": 6.5, "avg_cost_per_period": 348.6325, "mtbf_slope": 0.4, "cost_slope": -13.659, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 61, "model": "model1", "age": 18, "avg_mtbf": 11.0, "avg_cost_per_period": 498.3275, "mtbf_slope": 2.2, "cost_slope": 123.727, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 60, "model": "model3", "age": 17, "avg_mtbf": 9.5, "avg_cost_per_period": 484.1375, "mtbf_slope": -1.4, "cost_slope": -114.455, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 39, "model": "model2", "age": 18, "avg_mtbf": 8.5, "avg_cost_per_period": 444.4175, "mtbf_slope": 0.8, "cost_slope": -13.829, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 36, "model": "model2", "age": 18, "avg_mtbf": 10.25, "avg_cost_per_period": 535.4675, "mtbf_slope": -1.7, "cost_slope": -81.353, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 49, "model": "model3", "age": 18, "avg_mtbf": 8.75, "avg_cost_per_period": 481.415, "mtbf_slope": -1.3, "cost_slope": -55.64, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 59, "model": "model4", "age": 20, "avg_mtbf": 8.75, "avg_cost_per_period": 486.81, "mtbf_slope": -0.7, "cost_slope": -35.332, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 91, "model": "model2", "age": 19, "avg_mtbf": 8.5, "avg_cost_per_period": 478.6575, "mtbf_slope": -1.2, "cost_slope": -71.907, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 77, "model": "model1", "age": 19, "avg_mtbf": 11.5, "avg_cost_per_period": 523.9925, "mtbf_slope": 2.0, "cost_slope": 137.647, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 73, "model": "model1", "age": 16, "avg_mtbf": 7.25, "avg_cost_per_period": 356.665, "mtbf_slope": 2.5, "cost_slope": 112.364, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 99, "model": "model4", "age": 19, "avg_mtbf": 5.25, "avg_cost_per_period": 332.44, "mtbf_slope": -1.1, "cost_slope": -38.346, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 96, "model": "model2", "age": 17, "avg_mtbf": 5.0, "avg_cost_per_period": 245.365, "mtbf_slope": 1.2, "cost_slope": 57.508, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 90, "model": "model2", "age": 19, "avg_mtbf": 4.75, "avg_cost_per_period": 298.025, "mtbf_slope": 0.7, "cost_slope": 64.932, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 81, "model": "model2", "age": 18, "avg_mtbf": 3.25, "avg_cost_per_period": 137.315, "mtbf_slope": -1.5, "cost_slope": -53.202, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 86, "model": "model4", "age": 17, "avg_mtbf": 8.5, "avg_cost_per_period": 433.3025, "mtbf_slope": -1.4, "cost_slope": -127.659, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 67, "model": "model2", "age": 17, "avg_mtbf": 7.25, "avg_cost_per_period": 400.175, "mtbf_slope": 1.5, "cost_slope": 121.66, "stage": "END_OF_LIFE", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 68, "model": "model1", "age": 17, "avg_mtbf": 5.75, "avg_cost_per_period": 275.12, "mtbf_slope": -1.1, "cost_slope": -20.564, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 72, "model": "model3", "age": 20, "avg_mtbf": 5.25, "avg_cost_per_period": 281.255, "mtbf_slope": -0.5, "cost_slope": -86.618, "stage": "CRITICAL", "remaining_life_months": 0, "urgency": "Immediate"}, {"machineID": 14, "model": "model3", "age": 14, "avg_mtbf": 7.75, "avg_cost_per_period": 355.015, "mtbf_slope": -0.1, "cost_slope": -53.014, "stage": "AGING", "remaining_life_months": 12, "urgency": "Near-term"}, {"machineID": 46, "model": "model4", "age": 13, "avg_mtbf": 2.0, "avg_cost_per_period": 83.28, "mtbf_slope": -0.4, "cost_slope": -13.886, "stage": "AGING", "remaining_life_months": 24, "urgency": "Medium"}, {"machineID": 18, "model": "model1", "age": 13, "avg_mtbf": 3.75, "avg_cost_per_period": 131.0275, "mtbf_slope": 1.5, "cost_slope": 57.785, "stage": "DEGRADING", "remaining_life_months": 24, "urgency": "Medium"}, {"machineID": 58, "model": "model4", "age": 13, "avg_mtbf": 3.25, "avg_cost_per_period": 154.56, "mtbf_slope": 0.1, "cost_slope": 4.29, "stage": "AGING", "remaining_life_months": 24, "urgency": "Medium"}, {"machineID": 38, "model": "model3", "age": 13, "avg_mtbf": 7.0, "avg_cost_per_period": 285.7625, "mtbf_slope": -2.0, "cost_slope": -87.857, "stage": "AGING", "remaining_life_months": 24, "urgency": "Medium"}, {"machineID": 23, "model": "model1", "age": 13, "avg_mtbf": 4.75, "avg_cost_per_period": 227.91, "mtbf_slope": -0.3, "cost_slope": 11.632, "stage": "AGING", "remaining_life_months": 24, "urgency": "Medium"}, {"machineID": 19, "model": "model3", "age": 12, "avg_mtbf": 6.75, "avg_cost_per_period": 241.71, "mtbf_slope": 1.3, "cost_slope": 47.096, "stage": "DEGRADING", "remaining_life_months": 36, "urgency": "Long-term"}, {"machineID": 85, "model": "model4", "age": 12, "avg_mtbf": 5.0, "avg_cost_per_period": 191.5625, "mtbf_slope": -0.4, "cost_slope": -45.051, "stage": "AGING", "remaining_life_months": 36, "urgency": "Long-term"}, {"machineID": 32, "model": "model2", "age": 12, "avg_mtbf": 5.25, "avg_cost_per_period": 207.5625, "mtbf_slope": -0.7, "cost_slope": -21.449, "stage": "AGING", "remaining_life_months": 36, "urgency": "Long-term"}, {"machineID": 52, "model": "model2", "age": 12, "avg_mtbf": 4.0, "avg_cost_per_period": 178.185, "mtbf_slope": -5.659712656e-16, "cost_slope": 17.88, "stage": "AGING", "remaining_life_months": 36, "urgency": "Long-term"}, {"machineID": 33, "model": "model3", "age": 12, "avg_mtbf": 3.75, "avg_cost_per_period": 136.9425, "mtbf_slope": -1.5, "cost_slope": -45.331, "stage": "AGING", "remaining_life_months": 36, "urgency": "Long-term"}, {"machineID": 40, "model": "model1", "age": 11, "avg_mtbf": 6.0, "avg_cost_per_period": 266.405, "mtbf_slope": -0.0, "cost_slope": 7.498, "stage": "AGING", "remaining_life_months": 48, "urgency": "Long-term"}, {"machineID": 42, "model": "model4", "age": 11, "avg_mtbf": 5.5, "avg_cost_per_period": 192.14, "mtbf_slope": 1.2, "cost_slope": 33.582, "stage": "DEGRADING", "remaining_life_months": 48, "urgency": "Long-term"}, {"machineID": 89, "model": "model1", "age": 11, "avg_mtbf": 6.25, "avg_cost_per_period": 237.11, "mtbf_slope": -1.1, "cost_slope": -30.426, "stage": "AGING", "remaining_life_months": 48, "urgency": "Long-term"}, {"machineID": 95, "model": "model1", "age": 11, "avg_mtbf": 5.0, "avg_cost_per_period": 193.0525, "mtbf_slope": -0.2, "cost_slope": -8.481, "stage": "AGING", "remaining_life_months": 48, "urgency": "Long-term"}, {"machineID": 63, "model": "model1", "age": 11, "avg_mtbf": 6.75, "avg_cost_per_period": 286.1975, "mtbf_slope": 0.5, "cost_slope": 28.155, "stage": "DEGRADING", "remaining_life_months": 48, "urgency": "Long-term"}, {"machineID": 69, "model": "model2", "age": 10, "avg_mtbf": 3.25, "avg_cost_per_period": 97.5575, "mtbf_slope": -0.3, "cost_slope": -9.659, "stage": "AGING", "remaining_life_months": 60, "urgency": "Long-term"}, {"machineID": 75, "model": "model2", "age": 10, "avg_mtbf": 4.25, "avg_cost_per_period": 176.0825, "mtbf_slope": -1.1, "cost_slope": -18.449, "stage": "AGING", "remaining_life_months": 60, "urgency": "Long-term"}, {"machineID": 84, "model": "model4", "age": 10, "avg_mtbf": 3.0, "avg_cost_per_period": 110.8975, "mtbf_slope": -0.6, "cost_slope": -17.681, "stage": "AGING", "remaining_life_months": 60, "urgency": "Long-term"}, {"machineID": 64, "model": "model4", "age": 10, "avg_mtbf": 4.75, "avg_cost_per_period": 183.8075, "mtbf_slope": 1.1, "cost_slope": 36.927, "stage": "DEGRADING", "remaining_life_months": 60, "urgency": "Long-term"}, {"machineID": 2, "model": "model2", "age": 9, "avg_mtbf": 3.0, "avg_cost_per_period": 107.255, "mtbf_slope": 0.4, "cost_slope": 8.034, "stage": "DEGRADING", "remaining_life_months": 72, "urgency": "Long-term"}, {"machineID": 43, "model": "model1", "age": 9, "avg_mtbf": 2.5, "avg_cost_per_period": 91.2375, "mtbf_slope": -0.2, "cost_slope": -16.385, "stage": "STABLE", "remaining_life_months": 72, "urgency": "Long-term"}, {"machineID": 15, "model": "model2", "age": 9, "avg_mtbf": 3.75, "avg_cost_per_period": 125.02, "mtbf_slope": -0.3, "cost_slope": -12.206, "stage": "STABLE", "remaining_life_months": 72, "urgency": "Long-term"}, {"machineID": 82, "model": "model4", "age": 9, "avg_mtbf": 4.0, "avg_cost_per_period": 158.68, "mtbf_slope": 1.2, "cost_slope": 47.932, "stage": "DEGRADING", "remaining_life_months": 72, "urgency": "Long-term"}, {"machineID": 97, "model": "model4", "age": 9, "avg_mtbf": 5.25, "avg_cost_per_period": 158.9275, "mtbf_slope": -1.1, "cost_slope": -49.325, "stage": "STABLE", "remaining_life_months": 72, "urgency": "Long-term"}, {"machineID": 31, "model": "model4", "age": 9, "avg_mtbf": 1.75, "avg_cost_per_period": 55.0875, "mtbf_slope": 0.7, "cost_slope": 14.235, "stage": "DEGRADING", "remaining_life_months": 72, "urgency": "Long-term"}, {"machineID": 3, "model": "model2", "age": 8, "avg_mtbf": 1.25, "avg_cost_per_period": 50.9175, "mtbf_slope": -0.9, "cost_slope": -27.453, "stage": "STABLE", "remaining_life_months": 84, "urgency": "Long-term"}, {"machineID": 11, "model": "model4", "age": 8, "avg_mtbf": 3.5, "avg_cost_per_period": 108.305, "mtbf_slope": -0.6, "cost_slope": -20.148, "stage": "STABLE", "remaining_life_months": 84, "urgency": "Long-term"}, {"machineID": 28, "model": "model3", "age": 8, "avg_mtbf": 1.25, "avg_cost_per_period": 37.995, "mtbf_slope": 0.1, "cost_slope": 1.562, "stage": "STABLE", "remaining_life_months": 84, "urgency": "Long-term"}, {"machineID": 8, "model": "model1", "age": 8, "avg_mtbf": 1.5, "avg_cost_per_period": 63.4, "mtbf_slope": 0.4, "cost_slope": 11.536, "stage": "DEGRADING", "remaining_life_months": 84, "urgency": "Long-term"}, {"machineID": 100, "model": "model4", "age": 8, "avg_mtbf": 1.75, "avg_cost_per_period": 53.735, "mtbf_slope": -0.7, "cost_slope": -22.36, "stage": "STABLE", "remaining_life_months": 84, "urgency": "Long-term"}, {"machineID": 88, "model": "model1", "age": 8, "avg_mtbf": 2.25, "avg_cost_per_period": 81.0175, "mtbf_slope": -0.1, "cost_slope": 0.953, "stage": "STABLE", "remaining_life_months": 84, "urgency": "Long-term"}, {"machineID": 41, "model": "model1", "age": 8, "avg_mtbf": 3.5, "avg_cost_per_period": 109.5525, "mtbf_slope": 1.0, "cost_slope": 27.869, "stage": "DEGRADING", "remaining_life_months": 84, "urgency": "Long-term"}, {"machineID": 16, "model": "model3", "age": 7, "avg_mtbf": 2.75, "avg_cost_per_period": 112.6675, "mtbf_slope": -0.5, "cost_slope": -18.805, "stage": "STABLE", "remaining_life_months": 96, "urgency": "Long-term"}, {"machineID": 45, "model": "model4", "age": 7, "avg_mtbf": 4.0, "avg_cost_per_period": 119.74, "mtbf_slope": 0.8, "cost_slope": 10.128, "stage": "DEGRADING", "remaining_life_months": 96, "urgency": "Long-term"}, {"machineID": 34, "model": "model3", "age": 7, "avg_mtbf": 4.0, "avg_cost_per_period": 158.5925, "mtbf_slope": 1.2, "cost_slope": 48.523, "stage": "DEGRADING", "remaining_life_months": 96, "urgency": "Long-term"}, {"machineID": 98, "model": "model2", "age": 7, "avg_mtbf": 3.25, "avg_cost_per_period": 124.8625, "mtbf_slope": -1.1, "cost_slope": -49.567, "stage": "STABLE", "remaining_life_months": 96, "urgency": "Long-term"}, {"machineID": 83, "model": "model2", "age": 7, "avg_mtbf": 4.0, "avg_cost_per_period": 166.7125, "mtbf_slope": -0.6, "cost_slope": -22.723, "stage": "STABLE", "remaining_life_months": 96, "urgency": "Long-term"}, {"machineID": 44, "model": "model3", "age": 7, "avg_mtbf": 1.75, "avg_cost_per_period": 53.8575, "mtbf_slope": 0.3, "cost_slope": 20.461, "stage": "STABLE", "remaining_life_months": 96, "urgency": "Long-term"}, {"machineID": 65, "model": "model4", "age": 6, "avg_mtbf": 3.25, "avg_cost_per_period": 131.9025, "mtbf_slope": -0.5, "cost_slope": -43.503, "stage": "STABLE", "remaining_life_months": 108, "urgency": "Long-term"}, {"machineID": 56, "model": "model4", "age": 6, "avg_mtbf": 2.5, "avg_cost_per_period": 89.8425, "mtbf_slope": 0.4, "cost_slope": 18.161, "stage": "DEGRADING", "remaining_life_months": 108, "urgency": "Long-term"}, {"machineID": 37, "model": "model4", "age": 6, "avg_mtbf": 1.75, "avg_cost_per_period": 68.355, "mtbf_slope": 0.5, "cost_slope": 20.442, "stage": "DEGRADING", "remaining_life_months": 108, "urgency": "Long-term"}, {"machineID": 71, "model": "model1", "age": 6, "avg_mtbf": 2.0, "avg_cost_per_period": 81.7925, "mtbf_slope": -0.6, "cost_slope": -22.769, "stage": "STABLE", "remaining_life_months": 108, "urgency": "Long-term"}, {"machineID": 53, "model": "model4", "age": 5, "avg_mtbf": 2.5, "avg_cost_per_period": 70.145, "mtbf_slope": -4.601293471e-16, "cost_slope": 4.038, "stage": "STABLE", "remaining_life_months": 120, "urgency": "Long-term"}, {"machineID": 70, "model": "model3", "age": 5, "avg_mtbf": 2.75, "avg_cost_per_period": 78.18, "mtbf_slope": -0.3, "cost_slope": -13.386, "stage": "STABLE", "remaining_life_months": 120, "urgency": "Long-term"}, {"machineID": 80, "model": "model4", "age": 5, "avg_mtbf": 2.0, "avg_cost_per_period": 63.3825, "mtbf_slope": 0.6, "cost_slope": 18.783, "stage": "DEGRADING", "remaining_life_months": 120, "urgency": "Long-term"}, {"machineID": 47, "model": "model3", "age": 5, "avg_mtbf": 1.75, "avg_cost_per_period": 66.1175, "mtbf_slope": 0.1, "cost_slope": 3.997, "stage": "STABLE", "remaining_life_months": 120, "urgency": "Long-term"}, {"machineID": 48, "model": "model2", "age": 5, "avg_mtbf": 2.25, "avg_cost_per_period": 67.5575, "mtbf_slope": -1.3, "cost_slope": -42.453, "stage": "STABLE", "remaining_life_months": 120, "urgency": "Long-term"}, {"machineID": 1, "model": "model1", "age": 4, "avg_mtbf": 2.0, "avg_cost_per_period": 57.34, "mtbf_slope": -1.2, "cost_slope": -27.716, "stage": "STABLE", "remaining_life_months": 132, "urgency": "Long-term"}, {"machineID": 4, "model": "model1", "age": 4, "avg_mtbf": 1.25, "avg_cost_per_period": 34.4575, "mtbf_slope": 0.3, "cost_slope": 8.397, "stage": "STABLE", "remaining_life_months": 132, "urgency": "Long-term"}, {"machineID": 62, "model": "model3", "age": 4, "avg_mtbf": 1.0, "avg_cost_per_period": 22.965, "mtbf_slope": 0.4, "cost_slope": 11.146, "stage": "DEGRADING", "remaining_life_months": 132, "urgency": "Long-term"}, {"machineID": 30, "model": "model4", "age": 4, "avg_mtbf": 1.75, "avg_cost_per_period": 59.4475, "mtbf_slope": 0.9, "cost_slope": 17.943, "stage": "DEGRADING", "remaining_life_months": 132, "urgency": "Long-term"}, {"machineID": 17, "model": "model1", "age": 4, "avg_mtbf": 2.25, "avg_cost_per_period": 70.87, "mtbf_slope": -0.3, "cost_slope": -30.734, "stage": "STABLE", "remaining_life_months": 132, "urgency": "Long-term"}, {"machineID": 55, "model": "model2", "age": 4, "avg_mtbf": 0.5, "avg_cost_per_period": 10.5375, "mtbf_slope": 0.2, "cost_slope": 4.689, "stage": "STABLE", "remaining_life_months": 132, "urgency": "Long-term"}, {"machineID": 74, "model": "model3", "age": 4, "avg_mtbf": 1.75, "avg_cost_per_period": 40.4325, "mtbf_slope": 0.3, "cost_slope": 5.573, "stage": "STABLE", "remaining_life_months": 132, "urgency": "Long-term"}, {"machineID": 87, "model": "model2", "age": 4, "avg_mtbf": 0.5, "avg_cost_per_period": 11.5925, "mtbf_slope": 0.2, "cost_slope": 5.839, "stage": "STABLE", "remaining_life_months": 132, "urgency": "Long-term"}, {"machineID": 35, "model": "model2", "age": 3, "avg_mtbf": 1.75, "avg_cost_per_period": 58.27, "mtbf_slope": 1.1, "cost_slope": 28.888, "stage": "DEGRADING", "remaining_life_months": 144, "urgency": "Long-term"}, {"machineID": 7, "model": "model2", "age": 3, "avg_mtbf": 1.0, "avg_cost_per_period": 20.775, "mtbf_slope": 0.2, "cost_slope": 0.968, "stage": "STABLE", "remaining_life_months": 144, "urgency": "Long-term"}, {"machineID": 27, "model": "model1", "age": 3, "avg_mtbf": 1.0, "avg_cost_per_period": 21.74, "mtbf_slope": 0.6, "cost_slope": 12.078, "stage": "DEGRADING", "remaining_life_months": 144, "urgency": "Long-term"}, {"machineID": 29, "model": "model2", "age": 3, "avg_mtbf": 1.75, "avg_cost_per_period": 57.105, "mtbf_slope": 0.9, "cost_slope": 15.82, "stage": "DEGRADING", "remaining_life_months": 144, "urgency": "Long-term"}, {"machineID": 94, "model": "model1", "age": 3, "avg_mtbf": 1.75, "avg_cost_per_period": 55.265, "mtbf_slope": -0.1, "cost_slope": 0.796, "stage": "STABLE", "remaining_life_months": 144, "urgency": "Long-term"}, {"machineID": 78, "model": "model4", "age": 3, "avg_mtbf": 1.5, "avg_cost_per_period": 42.4975, "mtbf_slope": -0.6, "cost_slope": -12.603, "stage": "STABLE", "remaining_life_months": 144, "urgency": "Long-term"}, {"machineID": 54, "model": "model1", "age": 3, "avg_mtbf": 1.25, "avg_cost_per_period": 35.1475, "mtbf_slope": -0.1, "cost_slope": -3.831, "stage": "STABLE", "remaining_life_months": 144, "urgency": "Long-term"}, {"machineID": 79, "model": "model2", "age": 3, "avg_mtbf": 1.25, "avg_cost_per_period": 27.3725, "mtbf_slope": 0.1, "cost_slope": 2.339, "stage": "STABLE", "remaining_life_months": 144, "urgency": "Long-term"}, {"machineID": 76, "model": "model2", "age": 2, "avg_mtbf": 0.5, "avg_cost_per_period": 6.935, "mtbf_slope": 0.4, "cost_slope": 5.584, "stage": "NEW", "remaining_life_months": 156, "urgency": "Long-term"}, {"machineID": 6, "model": "model1", "age": 2, "avg_mtbf": 1.0, "avg_cost_per_period": 24.195, "mtbf_slope": -0.4, "cost_slope": -7.572, "stage": "NEW", "remaining_life_months": 156, "urgency": "Long-term"}, {"machineID": 21, "model": "model4", "age": 2, "avg_mtbf": 1.0, "avg_cost_per_period": 24.6025, "mtbf_slope": -0.4, "cost_slope": -2.975, "stage": "NEW", "remaining_life_months": 156, "urgency": "Long-term"}, {"machineID": 93, "model": "model2", "age": 2, "avg_mtbf": 0.5, "avg_cost_per_period": 18.8625, "mtbf_slope": -0.2, "cost_slope": -7.227, "stage": "NEW", "remaining_life_months": 156, "urgency": "Long-term"}, {"machineID": 13, "model": "model2", "age": 1, "avg_mtbf": 0.5, "avg_cost_per_period": 7.5875, "mtbf_slope": -0.4, "cost_slope": -6.587, "stage": "NEW", "remaining_life_months": 168, "urgency": "Long-term"}, {"machineID": 92, "model": "model1", "age": 1, "avg_mtbf": 0.5, "avg_cost_per_period": 8.5975, "mtbf_slope": 0.2, "cost_slope": 0.217, "stage": "NEW", "remaining_life_months": 168, "urgency": "Long-term"}, {"machineID": 66, "model": "model3", "age": 1, "avg_mtbf": 0.5, "avg_cost_per_period": 19.755, "mtbf_slope": -0.2, "cost_slope": -7.902, "stage": "NEW", "remaining_life_months": 168, "urgency": "Long-term"}], "machines": [{"machineID": 1, "model": "model1", "age": 4}, {"machineID": 2, "model": "model2", "age": 9}, {"machineID": 3, "model": "model2", "age": 8}, {"machineID": 4, "model": "model1", "age": 4}, {"machineID": 5, "model": "model4", "age": 19}, {"machineID": 6, "model": "model1", "age": 2}, {"machineID": 7, "model": "model2", "age": 3}, {"machineID": 8, "model": "model1", "age": 8}, {"machineID": 9, "model": "model2", "age": 18}, {"machineID": 10, "model": "model4", "age": 18}, {"machineID": 11, "model": "model4", "age": 8}, {"machineID": 12, "model": "model3", "age": 19}, {"machineID": 13, "model": "model2", "age": 1}, {"machineID": 14, "model": "model3", "age": 14}, {"machineID": 15, "model": "model2", "age": 9}, {"machineID": 16, "model": "model3", "age": 7}, {"machineID": 17, "model": "model1", "age": 4}, {"machineID": 18, "model": "model1", "age": 13}, {"machineID": 19, "model": "model3", "age": 12}, {"machineID": 20, "model": "model3", "age": 20}, {"machineID": 21, "model": "model4", "age": 2}, {"machineID": 22, "model": "model1", "age": 18}, {"machineID": 23, "model": "model1", "age": 13}, {"machineID": 24, "model": "model3", "age": 18}, {"machineID": 25, "model": "model3", "age": 20}, {"machineID": 26, "model": "model2", "age": 19}, {"machineID": 27, "model": "model1", "age": 3}, {"machineID": 28, "model": "model3", "age": 8}, {"machineID": 29, "model": "model2", "age": 3}, {"machineID": 30, "model": "model4", "age": 4}, {"machineID": 31, "model": "model4", "age": 9}, {"machineID": 32, "model": "model2", "age": 12}, {"machineID": 33, "model": "model3", "age": 12}, {"machineID": 34, "model": "model3", "age": 7}, {"machineID": 35, "model": "model2", "age": 3}, {"machineID": 36, "model": "model2", "age": 18}, {"machineID": 37, "model": "model4", "age": 6}, {"machineID": 38, "model": "model3", "age": 13}, {"machineID": 39, "model": "model2", "age": 18}, {"machineID": 40, "model": "model1", "age": 11}, {"machineID": 41, "model": "model1", "age": 8}, {"machineID": 42, "model": "model4", "age": 11}, {"machineID": 43, "model": "model1", "age": 9}, {"machineID": 44, "model": "model3", "age": 7}, {"machineID": 45, "model": "model4", "age": 7}, {"machineID": 46, "model": "model4", "age": 13}, {"machineID": 47, "model": "model3", "age": 5}, {"machineID": 48, "model": "model2", "age": 5}, {"machineID": 49, "model": "model3", "age": 18}, {"machineID": 50, "model": "model4", "age": 19}, {"machineID": 51, "model": "model4", "age": 19}, {"machineID": 52, "model": "model2", "age": 12}, {"machineID": 53, "model": "model4", "age": 5}, {"machineID": 54, "model": "model1", "age": 3}, {"machineID": 55, "model": "model2", "age": 4}, {"machineID": 56, "model": "model4", "age": 6}, {"machineID": 57, "model": "model1", "age": 20}, {"machineID": 58, "model": "model4", "age": 13}, {"machineID": 59, "model": "model4", "age": 20}, {"machineID": 60, "model": "model3", "age": 17}, {"machineID": 61, "model": "model1", "age": 18}, {"machineID": 62, "model": "model3", "age": 4}, {"machineID": 63, "model": "model1", "age": 11}, {"machineID": 64, "model": "model4", "age": 10}, {"machineID": 65, "model": "model4", "age": 6}, {"machineID": 66, "model": "model3", "age": 1}, {"machineID": 67, "model": "model2", "age": 17}, {"machineID": 68, "model": "model1", "age": 17}, {"machineID": 69, "model": "model2", "age": 10}, {"machineID": 70, "model": "model3", "age": 5}, {"machineID": 71, "model": "model1", "age": 6}, {"machineID": 72, "model": "model3", "age": 20}, {"machineID": 73, "model": "model1", "age": 16}, {"machineID": 74, "model": "model3", "age": 4}, {"machineID": 75, "model": "model2", "age": 10}, {"machineID": 76, "model": "model2", "age": 2}, {"machineID": 77, "model": "model1", "age": 19}, {"machineID": 78, "model": "model4", "age": 3}, {"machineID": 79, "model": "model2", "age": 3}, {"machineID": 80, "model": "model4", "age": 5}, {"machineID": 81, "model": "model2", "age": 18}, {"machineID": 82, "model": "model4", "age": 9}, {"machineID": 83, "model": "model2", "age": 7}, {"machineID": 84, "model": "model4", "age": 10}, {"machineID": 85, "model": "model4", "age": 12}, {"machineID": 86, "model": "model4", "age": 17}, {"machineID": 87, "model": "model2", "age": 4}, {"machineID": 88, "model": "model1", "age": 8}, {"machineID": 89, "model": "model1", "age": 11}, {"machineID": 90, "model": "model2", "age": 19}, {"machineID": 91, "model": "model2", "age": 19}, {"machineID": 92, "model": "model1", "age": 1}, {"machineID": 93, "model": "model2", "age": 2}, {"machineID": 94, "model": "model1", "age": 3}, {"machineID": 95, "model": "model1", "age": 11}, {"machineID": 96, "model": "model2", "age": 17}, {"machineID": 97, "model": "model4", "age": 9}, {"machineID": 98, "model": "model2", "age": 7}, {"machineID": 99, "model": "model4", "age": 19}, {"machineID": 100, "model": "model4", "age": 8}], "engineering_jobs": ["Calibrate Sensor", "Ganti Bearing Motor", "Inspeksi Turbin", "Overhaul Kompressor", "Repair Hydraulic Press", "Repair VFD Drive", "Replace Conveyor Belt", "Replace Pump Seal"]}</script>
+<script>
+(function(){
+"use strict";
+var DATA;
+try{ DATA = JSON.parse(document.getElementById("app-data").textContent); }
+catch(e){ console.error("Failed to parse payload", e); return; }
+
+var costSlopeMap = {};
+try{
+  (DATA.lifecycle||[]).forEach(function(r){ costSlopeMap[r.machineID] = r.cost_slope; });
+}catch(e){}
+var fmt = function(n, d){
+  if(n==null) return "\u2014";
+  return Number(n).toFixed(d===undefined?1:d);
+};
+
+function emptyRow(cols){
+  var tr=document.createElement("tr");
+  var td=document.createElement("td");
+  td.colSpan=cols;
+  td.style.textAlign="center";
+  td.style.padding="32px 16px";
+  td.style.color="var(--text-mid)";
+  td.style.fontSize="13px";
+  td.textContent="Tidak ada data untuk filter ini";
+  tr.appendChild(td);
+  return tr;
+}
+
+function lcBadgeClass(s){
+  return "badge-"+s.toLowerCase();
+}
+
+function el(tag, attrs, children){
+  var e = document.createElement(tag);
+  if(attrs) Object.keys(attrs).forEach(function(k){
+    if(k==="className") e.className=attrs[k];
+    else if(k==="textContent") e.textContent=attrs[k];
+    else e.setAttribute(k,attrs[k]);
+  });
+  if(children) children.forEach(function(c){ e.appendChild(c); });
+  return e;
+}
+
+// ---- STATS ----
+try{
+  var s = DATA.summary;
+  var cards = [
+    {label:"Total Mesin", value:s.total_machines, cls:"", sub:"URGENT "+s.urgent_count+" \u00b7 HIGH "+s.high_count},
+    {label:"Avg MTBF", value:fmt(s.avg_mtbf)+" hr", cls:"tone-teal", sub:"Rata-rata antar failure"},
+    {label:"Avg MTTR", value:fmt(s.avg_mttr)+" hr", cls:"", sub:"Rata-rata durasi repair"},
+    {label:"Availability", value:fmt(s.avg_availability)+"%", cls:"tone-info", sub:"Uptime keseluruhan"},
+    {label:"Total Biaya", value:fmt(s.total_maintenance_cost)+" Jt", cls:"tone-amber", sub:"Replace "+s.replace_count+" \u00b7 Review "+s.review_count},
+    {label:"Total Failures", value:s.total_failures, cls:"", sub:"Breakdown 2015 \u00b7 Repair "+s.repair_count}
+  ];
+  var wrap = document.getElementById("stats");
+  cards.forEach(function(c){
+    var card = el("div",{className:"stat-card "+c.cls},[
+      el("div",{className:"label",textContent:c.label}),
+      el("div",{className:"value",textContent:String(c.value)}),
+      el("div",{className:"sub",textContent:c.sub})
+    ]);
+    wrap.appendChild(card);
+  });
+}catch(e){console.error("stats",e)}
+
+// ---- PRIORITY TABLE ----
+var currentPriorityFilter = "ALL";
+try{
+  var pillsWrap = document.getElementById("priority-pills");
+  pillsWrap.setAttribute("role","radiogroup");
+  pillsWrap.setAttribute("aria-label","Filter prioritas");
+  var pillData = [
+    {key:"ALL",label:"ALL",cls:"pill-all",count:DATA.priority.length},
+    {key:"URGENT",label:"URGENT",cls:"pill-urgent",count:DATA.summary.urgent_count},
+    {key:"HIGH",label:"HIGH",cls:"pill-high",count:DATA.summary.high_count},
+    {key:"MEDIUM",label:"MEDIUM",cls:"pill-medium",count:DATA.priority.filter(function(r){return r.category==="MEDIUM"}).length},
+    {key:"LOW",label:"LOW",cls:"pill-low",count:DATA.priority.filter(function(r){return r.category==="LOW"}).length}
+  ];
+  function renderPriorityPills(){
+    pillsWrap.innerHTML="";
+    pillData.forEach(function(p){
+      var isActive = currentPriorityFilter===p.key;
+      var pill = el("span",{className:"pill "+p.cls+(isActive?" active":""),
+        textContent:p.label+" ("+p.count+")",tabindex:"0",role:"radio","aria-checked":String(isActive)});
+      pill.onclick=function(){currentPriorityFilter=p.key;renderPriorityPills();renderPriorityTable();};
+      pill.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();pill.click();}};
+      pillsWrap.appendChild(pill);
+    });
+  }
+  function badgeClass(cat){
+    var map={URGENT:"badge-urgent",HIGH:"badge-high",MEDIUM:"badge-medium",LOW:"badge-low"};
+    return map[cat]||"badge-low";
+  }
+  function renderPriorityTable(){
+    var rows = currentPriorityFilter==="ALL"?DATA.priority:DATA.priority.filter(function(r){return r.category===currentPriorityFilter});
+    var tbody = document.getElementById("priority-body");
+    tbody.innerHTML="";
+    if(rows.length===0){tbody.appendChild(emptyRow(11));return;}
+    rows.forEach(function(r){
+      var tr = document.createElement("tr");
+      tr.appendChild(el("td",{textContent:String(r.machineID)}));
+      tr.appendChild(el("td",{textContent:r.model}));
+      tr.appendChild(el("td",{textContent:String(r.age)}));
+      tr.appendChild(el("td",{textContent:fmt(r.mtbf_hours)}));
+      tr.appendChild(el("td",{textContent:fmt(r.mttr_hours)}));
+      tr.appendChild(el("td",{textContent:fmt(r.availability_pct)}));
+      tr.appendChild(el("td",{textContent:fmt(r.failures_per_month,2)}));
+
+      var _slope = costSlopeMap[r.machineID];
+      var _trend = "—";
+      var _tcls = "";
+      if(_slope!=null && isFinite(_slope)){
+        if(_slope > 1){_trend = "▲ up"; _tcls="t-up";}
+        else if(_slope < -1){_trend = "▼ down"; _tcls="t-down";}
+        else {_trend = "→ flat"; _tcls="t-flat";}
+      }
+      var _ttd = document.createElement("td");
+      var _tspan = el("span",{className:"trend "+_tcls, textContent:_trend});
+      _ttd.appendChild(_tspan);
+      tr.appendChild(_ttd);
+      tr.appendChild(el("td",{textContent:fmt(r.total_cost_Jt)}));
+      tr.appendChild(el("td",{textContent:fmt(r.score,1)}));
+      var catBadge = el("span",{className:"badge "+badgeClass(r.category),textContent:r.category});
+      var td5 = document.createElement("td");
+      td5.appendChild(catBadge);
+      tr.appendChild(td5);
+      tbody.appendChild(tr);
+    });
+  }
+  renderPriorityPills();
+  renderPriorityTable();
+}catch(e){console.error("priority",e)}
+
+// ---- DECISION TABLE ----
+var currentDecisionFilter = "ALL";
+try{
+  var chipWrap = document.getElementById("decision-chips");
+  chipWrap.setAttribute("role","radiogroup");
+  chipWrap.setAttribute("aria-label","Filter keputusan");
+  function decCount(d){ return DATA.decision.filter(function(r){return r.decision===d;}).length; }
+  var decChips = [["ALL"],["REPLACE"],["REVIEW"],["REPAIR"]];
+  function renderDecisionChips(){
+    chipWrap.innerHTML="";
+    decChips.forEach(function(pair){
+      var c = pair[0];
+      var cnt = c==="ALL" ? DATA.decision.length : decCount(c);
+      var isActive = currentDecisionFilter===c;
+      var chip = el("span",{className:"chip"+(isActive?" active":""),textContent:c+" ("+cnt+")",
+        tabindex:"0",role:"radio","aria-checked":String(isActive)});
+      chip.onclick=function(){currentDecisionFilter=c;renderDecisionChips();renderDecisionTable();};
+      chip.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();chip.click();}};
+      chipWrap.appendChild(chip);
+    });
+  }
+  function decBadgeClass(d){
+    return {REPLACE:"badge-replace",REVIEW:"badge-review",REPAIR:"badge-repair"}[d]||"";
+  }
+  function renderDecisionTable(){
+    var rows = currentDecisionFilter==="ALL"?DATA.decision:DATA.decision.filter(function(r){return r.decision===currentDecisionFilter});
+    var tbody = document.getElementById("decision-body");
+    tbody.innerHTML="";
+    if(rows.length===0){tbody.appendChild(emptyRow(6));return;}
+    rows.forEach(function(r){
+      var tr = document.createElement("tr");
+      tr.appendChild(el("td",{textContent:String(r.machineID)}));
+      tr.appendChild(el("td",{textContent:r.model}));
+      tr.appendChild(el("td",{textContent:String(r.age)}));
+      tr.appendChild(el("td",{textContent:fmt(r.cost_ratio,2)}));
+      tr.appendChild(el("td",{textContent:String(r.total_score)}));
+      var badge = el("span",{className:"badge "+decBadgeClass(r.decision),textContent:r.decision});
+      var td=document.createElement("td");td.appendChild(badge);tr.appendChild(td);
+      tbody.appendChild(tr);
+    });
+  }
+  renderDecisionChips();
+  renderDecisionTable();
+}catch(e){console.error("decision",e)}
+
+// ---- LIFECYCLE TABLE ----
+var currentLifecycleFilter = "ALL";
+try{
+  var lcChipWrap = document.getElementById("lifecycle-chips");
+  lcChipWrap.setAttribute("role","radiogroup");
+  lcChipWrap.setAttribute("aria-label","Filter lifecycle stage");
+  function lcCount(s){ return DATA.lifecycle.filter(function(r){return r.stage===s;}).length; }
+  var lcStages = ["ALL","NEW","STABLE","AGING","DEGRADING","CRITICAL","END_OF_LIFE"];
+  function renderLifecycleChips(){
+    lcChipWrap.innerHTML="";
+    lcStages.forEach(function(c){
+      var cnt = c==="ALL" ? DATA.lifecycle.length : lcCount(c);
+      var isActive = currentLifecycleFilter===c;
+      var chip = el("span",{className:"chip"+(isActive?" active":""),textContent:c+" ("+cnt+")",
+        tabindex:"0",role:"radio","aria-checked":String(isActive)});
+      chip.onclick=function(){currentLifecycleFilter=c;renderLifecycleChips();renderLifecycleTable();};
+      chip.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();chip.click();}};
+      lcChipWrap.appendChild(chip);
+    });
+  }
+  function renderLifecycleTable(){
+    var rows = currentLifecycleFilter==="ALL"?DATA.lifecycle:DATA.lifecycle.filter(function(r){return r.stage===currentLifecycleFilter});
+    var tbody = document.getElementById("lifecycle-body");
+    tbody.innerHTML="";
+    if(rows.length===0){tbody.appendChild(emptyRow(4));return;}
+    rows.forEach(function(r){
+      var tr = document.createElement("tr");
+      tr.appendChild(el("td",{textContent:String(r.machineID)}));
+      tr.appendChild(el("td",{textContent:r.model}));
+      tr.appendChild(el("td",{textContent:String(r.age)}));
+      var badge = el("span",{className:"badge "+lcBadgeClass(r.stage),textContent:r.stage});
+      var td=document.createElement("td");td.appendChild(badge);tr.appendChild(td);
+      tbody.appendChild(tr);
+    });
+  }
+  renderLifecycleChips();
+  renderLifecycleTable();
+}catch(e){console.error("lifecycle",e)}
+
+// ---- REPLACEMENT TIMELINE ----
+try{
+  var tbody = document.getElementById("timeline-body");
+  DATA.replacement_timeline.forEach(function(r){
+    var tr = document.createElement("tr");
+    tr.appendChild(el("td",{textContent:String(r.machineID)}));
+    tr.appendChild(el("td",{textContent:r.model}));
+    var sBadge = el("span",{className:"badge "+lcBadgeClass(r.stage),textContent:r.stage});
+    var td1=document.createElement("td");td1.appendChild(sBadge);tr.appendChild(td1);
+    tr.appendChild(el("td",{textContent:String(r.remaining_life_months)}));
+    tr.appendChild(el("td",{textContent:r.urgency}));
+    tbody.appendChild(tr);
+  });
+}catch(e){console.error("timeline",e)}
+
+// ---- CHARTS ----
+try{
+  if(typeof Chart==="undefined"){
+    document.querySelectorAll(".chart-card canvas").forEach(function(c){
+      var p=document.createElement("p");p.className="chart-fallback";
+      p.textContent="Chart.js not loaded. Check internet connection.";
+      c.parentNode.appendChild(p);c.style.display="none";
+    });
+  }else{
+    var chartOpts={responsive:true,plugins:{legend:{labels:{color:"#576178",usePointStyle:true,boxWidth:8}}}};
+    var scaleOpts={ticks:{color:"#576178"},grid:{color:"#e6eaf4"}};
+
+    // Bar: top 10 priority
+    var top10 = DATA.priority.slice(0,10);
+    new Chart(document.getElementById("chart-priority"),{
+      type:"bar",
+      data:{
+        labels:top10.map(function(r){return "M"+r.machineID}),
+        datasets:[{
+          label:"Priority Score",
+          data:top10.map(function(r){return r.score}),
+          backgroundColor:top10.map(function(r){
+            return {URGENT:"#dc2626",HIGH:"#ea580c",MEDIUM:"#ca8a04",LOW:"#059669"}[r.category]||"#4f46e5";
+          }),
+          borderRadius:4
+        }]
+      },
+      options:{...chartOpts,scales:{x:scaleOpts,y:{...scaleOpts,beginAtZero:true}}}
+    });
+
+    // Pie: lifecycle
+    var lcCounts={};
+    DATA.lifecycle.forEach(function(r){lcCounts[r.stage]=(lcCounts[r.stage]||0)+1;});
+    var lcLabels=Object.keys(lcCounts);
+    var lcColors={NEW:"#0284c7",STABLE:"#059669",AGING:"#ca8a04",DEGRADING:"#ea580c",CRITICAL:"#dc2626",END_OF_LIFE:"#b91c1c",OLD:"#94a3b8"};
+    new Chart(document.getElementById("chart-lifecycle"),{
+      type:"pie",
+      data:{
+        labels:lcLabels,
+        datasets:[{data:lcLabels.map(function(l){return lcCounts[l]}),
+          backgroundColor:lcLabels.map(function(l){return lcColors[l]||"#4f46e5"})}]
+      },
+      options:{...chartOpts}
+    });
+
+    // Doughnut: decision
+    var dcCounts={};
+    DATA.decision.forEach(function(r){dcCounts[r.decision]=(dcCounts[r.decision]||0)+1;});
+    var dcLabels=Object.keys(dcCounts);
+    var dcColors={REPLACE:"#dc2626",REVIEW:"#ca8a04",REPAIR:"#059669"};
+    new Chart(document.getElementById("chart-decision"),{
+      type:"doughnut",
+      data:{
+        labels:dcLabels,
+        datasets:[{data:dcLabels.map(function(l){return dcCounts[l]}),
+          backgroundColor:dcLabels.map(function(l){return dcColors[l]||"#4f46e5"})}]
+      },
+      options:{...chartOpts}
+    });
+  }
+}catch(e){console.error("charts",e)}
+
+})();
+</script>
+</body>
+</html>

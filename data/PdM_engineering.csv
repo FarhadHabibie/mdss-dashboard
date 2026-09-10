@@ -1,0 +1,80 @@
+job_type,complexity,estimated_days,actual_days,crew_size,skill_required,tools,spare_parts_needed,potential_delay_hours,parallel_allowed,buffer_pct
+Overhaul Kompressor,high,6.2,8.5,5,Mekanik senior + Electrician,Hoist 2T | Torque wrench | Dial indicator,Ya,17.6,Ya,37.4
+Overhaul Kompressor,high,5.8,8.5,5,Mekanik senior + Electrician,Hoist 2T | Torque wrench | Dial indicator,Ya,16.4,Ya,46.5
+Overhaul Kompressor,high,5.2,5.8,5,Mekanik senior + Electrician,Hoist 2T | Torque wrench | Dial indicator,Ya,10.3,Ya,11.4
+Overhaul Kompressor,high,5.4,4.7,5,Mekanik senior + Electrician,Hoist 2T | Torque wrench | Dial indicator,Tidak,17.1,Tidak,0
+Overhaul Kompressor,high,6.1,8.3,4,Mekanik senior + Electrician,Hoist 2T | Torque wrench | Dial indicator,Ya,15.7,Ya,35.5
+Ganti Bearing Motor,medium,1.5,1.4,1,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,7.0,Ya,0
+Ganti Bearing Motor,medium,1.9,1.9,2,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,19.6,Ya,1.4
+Ganti Bearing Motor,medium,1.4,1.9,2,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,17.1,Ya,35.8
+Ganti Bearing Motor,medium,1.7,1.9,1,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,16.6,Ya,11.7
+Ganti Bearing Motor,medium,1.6,2.3,3,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,11.0,Ya,42.7
+Ganti Bearing Motor,medium,1.5,2.0,1,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,15.6,Tidak,33.2
+Ganti Bearing Motor,medium,1.9,2.7,2,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Tidak,13.1,Tidak,40.8
+Ganti Bearing Motor,medium,1.8,2.6,1,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,5.4,Ya,43.4
+Ganti Bearing Motor,medium,1.5,1.7,3,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,9.5,Tidak,11.1
+Ganti Bearing Motor,medium,1.3,1.4,2,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,6.7,Tidak,1.2
+Ganti Bearing Motor,medium,1.7,2.1,3,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Tidak,14.8,Ya,19.3
+Ganti Bearing Motor,medium,1.4,1.8,1,Mekanik,Hydraulic puller | Feeler gauge | Dial indicator,Ya,11.2,Ya,30.9
+Repair VFD Drive,medium,2.0,1.9,2,Electrician,Multimeter | Oscilloscope | Soldering station,Ya,15.8,Ya,0
+Repair VFD Drive,medium,2.5,3.4,1,Electrician,Multimeter | Oscilloscope | Soldering station,Tidak,9.6,Ya,36.6
+Repair VFD Drive,medium,2.1,2.4,1,Electrician,Multimeter | Oscilloscope | Soldering station,Tidak,8.7,Ya,16.5
+Repair VFD Drive,medium,1.7,1.6,1,Electrician,Multimeter | Oscilloscope | Soldering station,Tidak,10.8,Ya,0
+Repair VFD Drive,medium,2.4,3.2,2,Electrician,Multimeter | Oscilloscope | Soldering station,Ya,9.4,Ya,35.1
+Repair VFD Drive,medium,2.0,1.7,2,Electrician,Multimeter | Oscilloscope | Soldering station,Ya,6.3,Ya,0
+Repair VFD Drive,medium,1.8,1.8,2,Electrician,Multimeter | Oscilloscope | Soldering station,Tidak,13.1,Tidak,0
+Repair VFD Drive,medium,2.2,2.4,3,Electrician,Multimeter | Oscilloscope | Soldering station,Ya,5.8,Ya,5.6
+Repair VFD Drive,medium,1.7,1.6,1,Electrician,Multimeter | Oscilloscope | Soldering station,Ya,7.4,Ya,0
+Replace Pump Seal,low,0.5,0.6,0,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Ya,16.7,Tidak,25.1
+Replace Pump Seal,low,0.4,0.6,0,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Ya,7.1,Ya,32.1
+Replace Pump Seal,low,0.5,0.6,0,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Tidak,18.3,Tidak,8.7
+Replace Pump Seal,low,0.6,0.7,1,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Ya,6.7,Ya,29.2
+Replace Pump Seal,low,0.4,0.6,2,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Tidak,5.7,Ya,40.9
+Replace Pump Seal,low,0.6,0.7,2,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Ya,12.4,Tidak,25.3
+Replace Pump Seal,low,0.6,0.5,2,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Tidak,12.3,Ya,0
+Replace Pump Seal,low,0.5,0.6,0,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Ya,16.8,Tidak,25.8
+Replace Pump Seal,low,0.6,0.7,2,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Tidak,6.2,Ya,7.2
+Replace Pump Seal,low,0.6,1.0,0,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Tidak,13.1,Tidak,47.4
+Replace Pump Seal,low,0.6,0.9,1,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Ya,2.4,Ya,39.3
+Replace Pump Seal,low,0.5,0.6,1,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Ya,5.5,Tidak,16.0
+Replace Pump Seal,low,0.5,0.7,1,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Ya,9.6,Ya,45.5
+Replace Pump Seal,low,0.5,0.6,2,Mekanik junior,Seal puller | Gasket scraper | Torque wrench,Ya,13.3,Ya,7.8
+Inspeksi Turbin,high,7.0,6.2,6,Insinyur + Mekanik + Safety officer,Borescope | Vibration analyzer | Lifting rig,Ya,17.5,Tidak,0
+Inspeksi Turbin,high,8.4,8.8,6,Insinyur + Mekanik + Safety officer,Borescope | Vibration analyzer | Lifting rig,Ya,17.2,Tidak,5.3
+Inspeksi Turbin,high,5.7,5.9,5,Insinyur + Mekanik + Safety officer,Borescope | Vibration analyzer | Lifting rig,Ya,17.4,Ya,2.1
+Inspeksi Turbin,high,6.9,10.3,5,Insinyur + Mekanik + Safety officer,Borescope | Vibration analyzer | Lifting rig,Ya,12.3,Tidak,47.8
+Inspeksi Turbin,high,6.5,7.8,4,Insinyur + Mekanik + Safety officer,Borescope | Vibration analyzer | Lifting rig,Tidak,2.5,Ya,20.2
+Calibrate Sensor,low,0.6,0.6,2,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,17.6,Tidak,0
+Calibrate Sensor,low,0.5,0.5,2,Instrumentation,Calibration kit | Multimeter | Software calibrator,Tidak,2.2,Ya,0
+Calibrate Sensor,low,0.6,0.9,2,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,8.8,Ya,47.1
+Calibrate Sensor,low,0.4,0.4,1,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,15.7,Ya,0
+Calibrate Sensor,low,0.6,0.5,2,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,10.3,Ya,0
+Calibrate Sensor,low,0.5,0.7,2,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,7.1,Ya,36.1
+Calibrate Sensor,low,0.5,0.5,1,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,5.1,Ya,0
+Calibrate Sensor,low,0.6,0.6,0,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,16.3,Ya,2.4
+Calibrate Sensor,low,0.6,0.8,1,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,6.7,Ya,34.3
+Calibrate Sensor,low,0.6,0.6,1,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,1.0,Tidak,8.7
+Calibrate Sensor,low,0.6,0.6,0,Instrumentation,Calibration kit | Multimeter | Software calibrator,Ya,10.7,Tidak,0
+Calibrate Sensor,low,0.6,0.8,0,Instrumentation,Calibration kit | Multimeter | Software calibrator,Tidak,1.7,Ya,49.1
+Replace Conveyor Belt,medium,2.7,3.9,4,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Tidak,2.6,Tidak,47.1
+Replace Conveyor Belt,medium,3.2,3.4,2,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,15.3,Tidak,3.8
+Replace Conveyor Belt,medium,3.2,4.1,4,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,19.5,Ya,27.4
+Replace Conveyor Belt,medium,3.3,3.6,4,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,5.7,Ya,11.8
+Replace Conveyor Belt,medium,3.7,3.3,4,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,1.2,Tidak,0
+Replace Conveyor Belt,medium,3.4,4.5,3,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Tidak,1.4,Tidak,31.2
+Replace Conveyor Belt,medium,3.9,5.5,2,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,2.1,Tidak,41.3
+Replace Conveyor Belt,medium,2.4,3.2,4,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,6.9,Tidak,29.5
+Replace Conveyor Belt,medium,2.7,3.4,2,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,4.6,Ya,23.7
+Replace Conveyor Belt,medium,3.1,3.0,3,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,6.2,Ya,0
+Replace Conveyor Belt,medium,3.8,4.8,2,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,8.8,Ya,26.8
+Replace Conveyor Belt,medium,3.1,3.7,4,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Tidak,2.4,Tidak,20.9
+Replace Conveyor Belt,medium,2.6,3.4,4,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Tidak,8.6,Tidak,29.5
+Replace Conveyor Belt,medium,2.5,2.2,2,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,5.7,Tidak,0
+Replace Conveyor Belt,medium,3.7,5.4,4,Mekanik + Welder,Belt tensioner | Welder | Measuring tape,Ya,4.6,Ya,43.7
+Repair Hydraulic Press,high,4.5,5.6,2,Mekanik senior + Hydraulik specialist,Hydraulic press | Pressure gauge | Alignment tools,Ya,2.9,Ya,24.9
+Repair Hydraulic Press,high,4.0,4.6,3,Mekanik senior + Hydraulik specialist,Hydraulic press | Pressure gauge | Alignment tools,Ya,19.9,Ya,13.8
+Repair Hydraulic Press,high,3.9,5.1,4,Mekanik senior + Hydraulik specialist,Hydraulic press | Pressure gauge | Alignment tools,Tidak,12.3,Ya,30.6
+Repair Hydraulic Press,high,4.9,5.1,2,Mekanik senior + Hydraulik specialist,Hydraulic press | Pressure gauge | Alignment tools,Ya,12.7,Ya,2.8
+Repair Hydraulic Press,high,3.4,4.9,4,Mekanik senior + Hydraulik specialist,Hydraulic press | Pressure gauge | Alignment tools,Tidak,6.5,Ya,44.3
+Repair Hydraulic Press,high,4.5,6.0,3,Mekanik senior + Hydraulik specialist,Hydraulic press | Pressure gauge | Alignment tools,Ya,16.1,Ya,32.6
+Repair Hydraulic Press,high,3.5,3.5,3,Mekanik senior + Hydraulik specialist,Hydraulic press | Pressure gauge | Alignment tools,Ya,12.2,Ya,0
