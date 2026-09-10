@@ -1,0 +1,55 @@
+============================================================
+MDSS — DOKUMENTASI TEKNIS (RINGKAS)
+Simpan file ini sebagai referensi. Versi lengkap: docs/TEKNIS.md
+============================================================
+
+APA YANG DIBUAT SESI INI (5 MODUL BARU)
+----------------------------------------
+1. forecast.py       = regresi linear (slope+R2) proyeksi failures & cost
+2. telemetry.py      = sensor trend + anomaly score + early-warning failure
+3. components.py     = breakdown per komponen (comp1-4): frekuensi,biaya,MTBF,risk
+4. error_analysis.py = error code -> prediksi failure (hit-rate 14 hari)
+5. maintenance_type.py = rasio scheduled vs unscheduled (80.6% reaktif!)
+
+METODE
+------
+- Semua: pandas groupby + numpy (np.polyfit untuk regresi).
+- TDD: tulis test dulu, lalu kode, lalu refactor (103 test green).
+- NaN-safe: kosong -> DataFrame kosong (tidak crash).
+
+LANGKAH CARA JALAN
+------------------
+  cd /mnt/d/Orca-e2pay/orca-1-e2pay/maintenance-project
+  python3 -m pytest -q          # test (harus 103 pass)
+  python3 dashboard/app.py --port 8323 --data-dir data   # jalankan
+  buka http://127.0.0.1:8323
+
+  Setelah ubah dashboard: python3 export_static.py (update GitHub Pages)
+
+CARA TRACK ERROR (URUTAN)
+-------------------------
+1. Server mati?          curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8323/
+2. Data OK?              curl -s http://127.0.0.1:8323/api/data | python3 -m json.tool
+3. Test mana gagal?      python3 -m pytest tests/test_<modul>.py -q
+4. Input salah?          cek kolom CSV (failures pakai "failure", cost pakai "component")
+5. JS gagal?             browser F12 > Console (cari "component", "telemetry", dll)
+6. Pages tak update?     python3 export_static.py; commit docs/index.html; tunggu 1-2 mnt
+
+GIT FLOW
+--------
+main stabil. Fitur -> branch baru -> PR -> merge -> hapus branch.
+JANGAN push langsung ke main.
+
+ANGKA KUNCI (BASELINE)
+----------------------
+100 mesin | 1662 failures | 1 thn (2015) | avail 96.6%
+Scheduled 19.4% / Unscheduled 80.6% | error coverage 36%
+At-risk telemetry 3 mesin (38,60,90)
+
+PITFALL YANG SUDAH KETEMU (JANGAN ULANG)
+-----------------------------------------
+- at_risk telemetry: threshold absolut saja = 0. PAKAI kombinasi
+  absolut + outlier z-score fleet (>2.5).
+- forecast import: try/except src.projection / projection (2 mode).
+- kolom "failure" vs "component" beda-beda antar CSV.
+- export_static.py wajib jalan setelah ubah app.py.
