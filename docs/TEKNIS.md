@@ -5,7 +5,7 @@ Dokumentasi Teknis: Metode, Langkah, dan Cara Melacak Error
 
 TANGGAL: 2026-09-10
 CABANG: mdss-analysis (sudah di-merge ke main via PR #3)
-LOKASI: /mnt/d/Orca-e2pay/orca-1-e2pay/maintenance-project
+LOKASI: /mnt/d/agen/mdss-dashboard
 
 
 --------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ Semua modul baru ikut pola yang sama:
 5. CARA MENJALANKAN / VERIFIKASI
 --------------------------------------------------------------------------------
   # 1. Test semua (103 test)
-  cd /mnt/d/Orca-e2pay/orca-1-e2pay/maintenance-project
+  cd /mnt/d/agen/mdss-dashboard
   python3 -m pytest -q
 
   # 2. Jalankan dashboard lokal

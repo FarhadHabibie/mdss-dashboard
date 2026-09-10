@@ -51,8 +51,8 @@ def component_mtbf(failures_df: pd.DataFrame, machines_df: pd.DataFrame) -> pd.D
     df["datetime"] = pd.to_datetime(df["datetime"])
     rows = []
     for (mid, comp), grp in df.groupby(["machineID", "failure"]):
-        times = grp.sort_values("datetime")["datetime"].astype("int64").to_numpy() / 1_000_000_000
-        diffs = np.diff(times) / 3600
+        s = grp.sort_values("datetime")["datetime"]
+        diffs = s.diff().dropna().dt.total_seconds().to_numpy() / 3600
         rows.append({
             "machineID": mid,
             "component": comp,
