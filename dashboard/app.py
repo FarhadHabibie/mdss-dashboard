@@ -437,6 +437,9 @@ th,td{outline:none}
  .info-panel.open{display:block}
 .section-head{position:relative}
  .trend{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.2px}
+.t-up{background:rgba(217,45,32,.10);color:#d92d20}
+.t-down{background:rgba(5,99,71,.10);color:#056347}
+.t-flat{background:rgba(107,113,140,.10);color:#67718c}
 </style>
 </head>
 <body>
