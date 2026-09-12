@@ -356,12 +356,12 @@ body{
 table{width:100%;border-collapse:collapse;font-size:13px}
 thead{position:sticky;top:0;z-index:2}
 th{
-  text-align:left;padding:12px 16px;color:var(--text-mid);font-weight:700;
+  text-align:left;padding:12px 18px;color:var(--text-mid);font-weight:700;
   border-bottom:1px solid var(--border-strong);font-size:11px;
   text-transform:uppercase;letter-spacing:.6px;
-  background:#f0f3fa;white-space:nowrap;
+  background:#f0f3fa;white-space:normal;line-height:1.35;
 }
-td{padding:11px 16px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;
+td{padding:12px 18px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;
   color:var(--text)}
 tr:last-child td{border-bottom:none}
 tbody tr{transition:background .12s}
@@ -388,7 +388,7 @@ tbody tr:hover td{background:var(--surface-2)}
 .badge-old{background:var(--surface-2);color:var(--text-mid)}
 
 /* charts */
-.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:2px}
+.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
 .chart-card{
   background:#fff;
   border:1px solid var(--border);border-radius:var(--r-lg);
