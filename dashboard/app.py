@@ -422,7 +422,6 @@ tbody tr:hover td{background:var(--surface-2)}
 }
 table{border-collapse:separate;border-spacing:0}
 th,td{outline:none}
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .table-wrap:focus-within{box-shadow:0 0 0 2px var(--brand)}
 
 @media (prefers-reduced-motion: reduce){
@@ -430,7 +429,7 @@ th,td{outline:none}
 }
 
 @media(max-width:1100px){.stats-row{grid-template-columns:repeat(3,1fr)}.charts-row{grid-template-columns:1fr}}
-@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}.navbar{padding:0 16px}.wrap{padding:16px}.section{padding:16px 14px}.chart-card{padding:14px 12px}}
+@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}.navbar{padding:0 16px}.wrap{padding:16px}}
 @media(max-width:480px){.stats-row{grid-template-columns:1fr}}
  .info-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--border-strong);background:#fff;color:var(--text-mid);font-size:12px;cursor:pointer;line-height:1;vertical-align:middle;margin-left:6px;padding:0}
  .info-btn:hover{border-color:var(--brand);color:var(--brand)}
@@ -917,8 +916,8 @@ if(typeof Chart==="undefined"){
         ctx.strokeStyle="#dc2626"; ctx.setLineDash([6,4]); ctx.lineWidth=1.5;
         ctx.beginPath(); ctx.moveTo(chart.chartArea.left, y75); ctx.lineTo(chart.chartArea.right, y75); ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle="#dc2626"; ctx.font="11px system-ui"; ctx.textAlign="right";
-        ctx.fillText("Ambang URGENT (75)", chart.chartArea.right-4, y75-5);
+        ctx.fillStyle="#dc2626"; ctx.font="11px system-ui"; ctx.textAlign="left";
+        ctx.fillText("Ambang URGENT (75)", chart.chartArea.left+4, y75-5);
         ctx.restore();
       }
     };
