@@ -177,27 +177,27 @@ HTML_PAGE = r"""<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MDSS — Maintenance Decision Support System</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+ <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='system-ui' font-weight='800' font-size='20' fill='%234f46e5'%3EM%3C/text%3E%3C/svg%3E">
+ <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 /* ============================================================
-   MDSS — Enterprise Command Center (Corporate Dark)
+   MDSS — Enterprise Command Center (light premium palette)
    Design tokens, layers, spacing scale 8px
    ============================================================ */
 :root{
   /* surfaces — light premium */
   --bg:#eef1f9;
-  --surface-0:#e7ebf6;
   --surface-1:#ffffff;
   --surface-2:#f4f6fc;
   --surface-3:#e9edf7;
   --border:#e4e8f2;
   --border-strong:#cdd5e8;
 
-  /* text */
-  --text-hi:#161d33;
-  --text:#3f4759;
-  --text-mid:#576178;
-  --text-low:#9aa3bb;
+/* text */
+   --text-hi:#161d33;
+   --text:#3f4759;
+   --text-mid:#576178;
+   --text-low:#6b7280;
 
   /* brand */
   --brand:#4f46e5;
@@ -215,6 +215,9 @@ HTML_PAGE = r"""<!DOCTYPE html>
   --degrading:#ea580c;--degrading-bg:rgba(234,88,12,.12);
   --critical:#d92d20;--critical-bg:rgba(217,45,32,.10);
   --eol:#b42318;     --eol-bg:rgba(180,35,24,.12);
+
+  /* status — REPLACE is neutral (swap action), never red */
+  --replace:#46569e; --replace-bg:rgba(70,86,158,.12);
 
   --r-sm:8px; --r-md:12px; --r-lg:18px;
   --shadow-sm:0 1px 2px rgba(22,29,51,.05);
@@ -264,16 +267,33 @@ body{
 .page-head p{color:var(--text-mid);font-size:13.5px;margin-top:6px;max-width:720px;line-height:1.6}
 .text-low{color:var(--text-low)}
 
+/* --- needs action banner --- */
+.action-banner{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0 22px}
+.action-banner[hidden]{display:none}
+.action-card{
+  flex:1;min-width:240px;display:flex;align-items:center;gap:12px;
+  background:var(--surface-1);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:16px 18px;text-decoration:none;color:var(--text);box-shadow:var(--shadow);
+  transition:box-shadow .15s,border-color .15s;
+}
+.action-card:hover{box-shadow:var(--shadow-lg);border-color:var(--border-strong)}
+.action-card .icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+.action-card.urgent .icon{background:var(--urgent-bg);color:var(--urgent)}
+.action-card.warn .icon{background:var(--medium-bg);color:var(--medium)}
+.action-card .title{font-size:13.5px;font-weight:700;color:var(--text-hi)}
+.action-card .sub{font-size:12px;color:var(--text-mid);margin-top:2px}
+.action-card .arrow{margin-left:auto;color:var(--text-mid);font-size:15px}
+
 /* --- stat cards --- */
 .stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
 .stat-card{
-  position:relative;overflow:hidden;
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:var(--r-md);padding:20px 20px 18px;
-  box-shadow:var(--shadow);transition:transform .15s cubic-bezier(.2,.8,.2,1),box-shadow .15s,border-color .15s;
-}
-.stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--border-strong)}
+   position:relative;overflow:hidden;
+   background:#fff;
+   border:1px solid var(--border);
+   border-radius:var(--r-md);padding:20px 20px 18px;
+   box-shadow:var(--shadow);transition:box-shadow .15s,border-color .15s;
+ }
+ .stat-card:hover{box-shadow:var(--shadow-lg);border-color:var(--border-strong)}
 .stat-card::before{
   content:"";position:absolute;left:0;top:18px;bottom:18px;width:1px;border-radius:1px;
   background:var(--brand);opacity:.6;
@@ -305,48 +325,43 @@ body{
 .section-head h2::before{content:"";width:3px;height:16px;border-radius:2px;background:var(--brand)}
 .section-head .hint{font-size:12px;color:var(--text-mid)}
 
-/* pills */
-.priority-bar{display:flex;gap:8px;margin:14px 0 16px;flex-wrap:wrap}
-.pill{
+/* unified filter component (pills + chips) */
+.priority-bar,.chip-row{display:flex;gap:8px;margin:14px 0 16px;flex-wrap:wrap}
+.pill,.chip{
   padding:7px 15px;border-radius:9px;font-size:12.5px;font-weight:650;
   cursor:pointer;border:1px solid var(--border);transition:color .18s,border-color .18s,box-shadow .18s,background .18s;user-select:none;
   background:#fff;color:var(--text-mid);box-shadow:var(--shadow-sm);
 }
-.pill:hover{color:var(--text-hi);border-color:var(--border-strong);box-shadow:var(--shadow)}
-.pill.active{box-shadow:0 0 0 1.5px var(--border-strong)}
-.pill-urgent{background:var(--urgent-bg);color:var(--urgent)}
-.pill-urgent.active{border-color:var(--urgent)}
-.pill-high{background:var(--high-bg);color:var(--high)}
-.pill-high.active{border-color:var(--high)}
-.pill-medium{background:var(--medium-bg);color:var(--medium)}
-.pill-medium.active{border-color:var(--medium)}
-.pill-low{background:var(--low-bg);color:var(--low)}
-.pill-low.active{border-color:var(--low)}
-.pill-all{background:var(--surface-2);color:var(--text-hi)}
-.pill-all.active{border-color:var(--brand);color:var(--brand)}
-
-/* chips */
-.chip-row{display:flex;gap:8px;margin:14px 0 16px;flex-wrap:wrap}
-.chip{
-  padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;
-  cursor:pointer;border:1px solid var(--border);background:#fff;
-  color:var(--text-mid);transition:color .18s,border-color .18s,box-shadow .18s,background .18s;user-select:none;box-shadow:var(--shadow-sm);
+.pill:hover,.chip:hover{color:var(--text-hi);border-color:var(--border-strong);box-shadow:var(--shadow)}
+.pill.active,.chip.active{box-shadow:0 0 0 1.5px var(--border-strong)}
+.pill-urgent,.chip-urgent{background:var(--urgent-bg);color:var(--urgent)}
+.pill-urgent.active,.chip-urgent.active{border-color:var(--urgent)}
+.pill-high,.chip-high{background:var(--high-bg);color:var(--high)}
+.pill-high.active,.chip-high.active{border-color:var(--high)}
+.pill-medium,.chip-medium{background:var(--medium-bg);color:var(--medium)}
+.pill-medium.active,.chip-medium.active{border-color:var(--medium)}
+.pill-low,.chip-low{background:var(--low-bg);color:var(--low)}
+.pill-low.active,.chip-low.active{border-color:var(--low)}
+.pill-all,.chip-all{background:var(--surface-2);color:var(--text-hi)}
+.pill-all.active,.chip-all.active{border-color:var(--brand);color:var(--brand)}
+.reset-btn{
+  padding:7px 15px;border-radius:9px;font-size:12.5px;font-weight:650;cursor:pointer;
+  border:1px solid var(--border);background:#fff;color:var(--text-mid);
+  transition:color .18s,border-color .18s,box-shadow .18s;user-select:none;
 }
-.chip:hover{color:var(--text-hi);border-color:var(--border-strong);box-shadow:var(--shadow)}
-.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
-
-/* tables */
-.table-wrap{overflow-x:auto;max-height:520px;overflow-y:auto;
-  border:1px solid var(--border);border-radius:var(--r-sm);padding:0}
+.reset-btn:hover{color:var(--urgent);border-color:var(--urgent);box-shadow:var(--shadow)}
+.reset-btn:focus-visible,.pill:focus-visible,.chip:focus-visible{
+  outline:2px solid var(--brand);outline-offset:2px;
+}
 table{width:100%;border-collapse:collapse;font-size:13px}
 thead{position:sticky;top:0;z-index:2}
 th{
-  text-align:left;padding:12px 16px;color:var(--text-mid);font-weight:700;
+  text-align:left;padding:12px 18px;color:var(--text-mid);font-weight:700;
   border-bottom:1px solid var(--border-strong);font-size:11px;
   text-transform:uppercase;letter-spacing:.6px;
-  background:#f0f3fa;white-space:nowrap;
+  background:#f0f3fa;white-space:normal;line-height:1.35;
 }
-td{padding:11px 16px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;
+td{padding:12px 18px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;
   color:var(--text)}
 tr:last-child td{border-bottom:none}
 tbody tr{transition:background .12s}
@@ -361,7 +376,7 @@ tbody tr:hover td{background:var(--surface-2)}
 .badge-high{background:var(--high-bg);color:var(--high)}
 .badge-medium{background:var(--medium-bg);color:var(--medium)}
 .badge-low{background:var(--low-bg);color:var(--low)}
-.badge-replace{background:var(--critical-bg);color:var(--critical)}
+.badge-replace{background:var(--replace-bg);color:var(--replace)}
 .badge-review{background:var(--medium-bg);color:var(--medium)}
 .badge-repair{background:var(--low-bg);color:var(--low)}
 .badge-new{background:var(--new-bg);color:var(--new)}
@@ -373,7 +388,7 @@ tbody tr:hover td{background:var(--surface-2)}
 .badge-old{background:var(--surface-2);color:var(--text-mid)}
 
 /* charts */
-.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:2px}
+.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
 .chart-card{
   background:#fff;
   border:1px solid var(--border);border-radius:var(--r-lg);
@@ -393,11 +408,6 @@ tbody tr:hover td{background:var(--surface-2)}
 
 
 /* cost trend chips */
-.trend{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;
-  font-size:11px;font-weight:700;letter-spacing:.2px}
-.t-up{background:rgba(217,45,32,.10);color:#d92d20}
-.t-down{background:rgba(5,99,71,.10);color:#056347}
-.t-flat{background:rgba(107,113,140,.10);color:#67718c}
 
 /* --- entrance animations --- */
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -421,17 +431,23 @@ th,td{outline:none}
 @media(max-width:1100px){.stats-row{grid-template-columns:repeat(3,1fr)}.charts-row{grid-template-columns:1fr}}
 @media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}.navbar{padding:0 16px}.wrap{padding:16px}}
 @media(max-width:480px){.stats-row{grid-template-columns:1fr}}
+ .info-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--border-strong);background:#fff;color:var(--text-mid);font-size:12px;cursor:pointer;line-height:1;vertical-align:middle;margin-left:6px;padding:0}
+ .info-btn:hover{border-color:var(--brand);color:var(--brand)}
+ .info-panel{position:absolute;z-index:20;background:#fff;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:10px 14px;max-width:340px;font-size:12px;color:var(--text);box-shadow:var(--shadow-lg);line-height:1.5;display:none}
+ .info-panel.open{display:block}
+.section-head{position:relative}
+ .trend{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.2px}
 </style>
 </head>
 <body>
   <nav class="navbar">
-    <div class="brand">
-      <div class="brand-mark">M</div>
-      <div>
-        <div class="brand-name">MDSS</div>
-        <div class="brand-sub">Maintenance Decision Support</div>
-      </div>
-    </div>
+<div class="brand">
+       <div class="brand-mark">M</div>
+       <div>
+         <div class="brand-name">MDSS</div>
+         <div class="brand-sub">Maintenance Decision Support</div>
+       </div>
+     </div>
     <div class="nav-status"><span class="live-dot"></span><span>Live Data &middot; 100 mesin</span></div>
   </nav>
 
@@ -441,36 +457,42 @@ th,td{outline:none}
       <p>Analisis prioritas, keputusan repair vs replacement, proyeksi lifecycle, dan planning resource &mdash; berbasis data historis 100 mesin.</p>
     </div>
 
+    <!-- action banner -->
+    <div id="needs-action" class="action-banner" style="display:none;"></div>
+
     <div id="stats" class="stats-row"></div>
+     <div class="data-timestamp" style="text-align:center;color:var(--text-mid);font-size:12px;margin-top:8px;">Data per 12 Sep 2026</div>
 
     <div class="charts-row">
-    <div class="chart-card"><h2 class="chart-title">Top 10 Priority</h2><canvas id="chart-priority"></canvas></div>
-    <div class="chart-card"><h2 class="chart-title">Lifecycle Distribution</h2><canvas id="chart-lifecycle"></canvas></div>
-    <div class="chart-card"><h2 class="chart-title">Decision Distribution</h2><canvas id="chart-decision"></canvas></div>
+<div class="chart-card"><h2 class="chart-title">Top 10 Priority</h2><canvas id="chart-priority" role="img" aria-label="Grafik batang 10 mesin prioritas tertinggi dengan skor 0-100"></canvas></div>
+     <div class="chart-card"><h2 class="chart-title">Lifecycle Distribution</h2><canvas id="chart-lifecycle" role="img" aria-label="Grafik lingkaran distribusi lifecycle stage mesin (Baru, Stabil, Menua, Degradasi, Kritis, Akhir Umur)"></canvas></div>
+     <div class="chart-card"><h2 class="chart-title">Decision Distribution</h2><canvas id="chart-decision" role="img" aria-label="Grafik donat keputusan repair vs replace (REPLACE, REVIEW, REPAIR)"></canvas></div>
     </div>
 
     <div id="priority-section" class="section">
       <div class="section-head">
-        <h2>Priority Mesin</h2>
+        <h2>Priority Mesin <button type="button" class="info-btn" aria-expanded="false" aria-label="Info metodologi skor prioritas" onclick="toggleInfo(this)">&#9432;</button></h2>
         <span class="hint">Skor prioritas 0&ndash;100 &mdash; URGENT &ge;75 &middot; HIGH 50&ndash;74 &middot; MEDIUM 25&ndash;49 &middot; LOW &lt;25</span>
+        <div class="info-panel">Skor = bobot biaya 40%, frekuensi 25%, umur 20%, criticality 15% (skala 0&ndash;100).</div>
       </div>
       <div id="priority-pills" class="priority-bar"></div>
       <div class="table-wrap">
         <table id="priority-table" aria-label="Prioritas mesin">
           <thead><tr>
-            <th>MachineID</th><th>Model</th><th>Age</th><th>MTBF (hr)</th>
-            <th>MTTR (hr)</th><th>Avail %</th><th>Fail/mo</th><th>Cost Trend</th><th>Total Cost (Jt)</th>
-            <th>Score</th><th>Category</th>
+<th>MachineID</th><th>Model</th><th>Age</th><th>MTBF (hr)</th>
+             <th>MTTR (hr)</th><th>Avail %</th><th>Gagal/bln</th><th>Cost Trend</th><th>Biaya Total (Jt)</th>
+             <th>Score</th><th>Category</th>
           </tr></thead>
-          <tbody id="priority-body" aria-live="polite"></tbody>
+          <tbody id="priority-body"></tbody>
         </table>
       </div>
     </div>
 
     <div id="decision-section" class="section">
       <div class="section-head">
-        <h2>Keputusan Repair vs Replace</h2>
+        <h2>Keputusan Repair vs Replace <button type="button" class="info-btn" aria-expanded="false" aria-label="Info metodologi keputusan" onclick="toggleInfo(this)">&#9432;</button></h2>
         <span class="hint">Berdasarkan cost ratio, frekuensi, umur, criticality &amp; downtime</span>
+        <div class="info-panel">Keputusan dari rasio biaya repair vs replacement, frekuensi breakdown, umur, dan criticality mesin.</div>
       </div>
       <div id="decision-chips" class="chip-row"></div>
       <div class="table-wrap">
@@ -479,15 +501,16 @@ th,td{outline:none}
             <th>MachineID</th><th>Model</th><th>Age</th><th>Cost Ratio</th>
             <th>Score</th><th>Decision</th>
           </tr></thead>
-          <tbody id="decision-body" aria-live="polite"></tbody>
+          <tbody id="decision-body"></tbody>
         </table>
       </div>
     </div>
 
     <div id="lifecycle-section" class="section">
       <div class="section-head">
-        <h2>Lifecycle Stage</h2>
+        <h2>Lifecycle Stage <button type="button" class="info-btn" aria-expanded="false" aria-label="Info metodologi lifecycle" onclick="toggleInfo(this)">&#9432;</button></h2>
         <span class="hint">Regresi tren failure &amp; biaya per kuartal + umur equipment</span>
+        <div class="info-panel">Kategori dari tren MTBF, biaya, dan sisa umur (Baru, Stabil, Menua, Degradasi, Kritis, Akhir Umur).</div>
       </div>
       <div id="lifecycle-chips" class="chip-row"></div>
       <div class="table-wrap">
@@ -495,15 +518,16 @@ th,td{outline:none}
           <thead><tr>
             <th>MachineID</th><th>Model</th><th>Age</th><th>Stage</th>
           </tr></thead>
-          <tbody id="lifecycle-body" aria-live="polite"></tbody>
+          <tbody id="lifecycle-body"></tbody>
         </table>
       </div>
     </div>
 
     <div id="timeline-section" class="section">
       <div class="section-head">
-        <h2>Proyeksi Penggantian</h2>
+        <h2>Proyeksi Penggantian <button type="button" class="info-btn" aria-expanded="false" aria-label="Info metodologi proyeksi" onclick="toggleInfo(this)">&#9432;</button></h2>
         <span class="hint">Urut berdasar sisa umur &mdash; prioritas penggantian equipment</span>
+        <div class="info-panel">Proyeksi linear dari tren biaya dan frekuensi failure historis.</div>
       </div>
       <div class="table-wrap">
         <table id="timeline-table" aria-label="Proyeksi penggantian">
@@ -511,24 +535,25 @@ th,td{outline:none}
             <th>MachineID</th><th>Model</th><th>Stage</th>
             <th>Sisa Umur (bln)</th><th>Urgency</th>
           </tr></thead>
-          <tbody id="timeline-body" aria-live="polite"></tbody>
+          <tbody id="timeline-body"></tbody>
         </table>
       </div>
     </div>
 
     <div id="components-section" class="section">
       <div class="section-head">
-        <h2>Komponen &amp; Health</h2>
+        <h2>Komponen &amp; Health <button type="button" class="info-btn" aria-expanded="false" aria-label="Info metodologi anomaly" onclick="toggleInfo(this)">&#9432;</button></h2>
         <span class="hint">Frekuensi failure per komponen, biaya, MTBF &mdash; sensor telemetry trend + anomaly</span>
+        <div class="info-panel">Anomaly = deviasi sensor (voltase, rotasi, tekanan, vibrasi) dari baseline mesin.</div>
       </div>
       <div class="charts-row" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:18px">
-        <div class="chart-card"><h2 class="chart-title">Komponen Risk</h2><canvas id="chart-component"></canvas></div>
-        <div class="chart-card"><h2 class="chart-title">Telemetry Anomaly</h2><canvas id="chart-anomaly"></canvas></div>
-        <div class="chart-card"><h2 class="chart-title">Error hit-rate (14d)</h2><canvas id="chart-error"></canvas></div>
+<div class="chart-card"><h2 class="chart-title">Komponen Risk</h2><canvas id="chart-component" role="img" aria-label="Grafik batang risk score tiap komponen"></canvas></div>
+         <div class="chart-card"><h2 class="chart-title">Telemetry Anomaly</h2><canvas id="chart-anomaly" role="img" aria-label="Grafik batang anomaly score 20 mesin teratas"></canvas></div>
+         <div class="chart-card"><h2 class="chart-title">Error hit-rate (14d)</h2><canvas id="chart-error" role="img" aria-label="Grafik batang hit rate error predictor 8 error teratas"></canvas></div>
       </div>
       <div class="table-wrap" style="margin-bottom:14px">
         <table id="component-table" aria-label="Analisa komponen">
-          <thead><tr><th>Komponen</th><th>Failures</th><th>% Total</th><th>Total Cost (Jt)</th><th>Risk Score</th><th>Risk Level</th></tr></thead>
+          <thead><tr><th>Komponen</th><th>Failures</th><th>% Total</th><th>Biaya Total (Jt)</th><th>Risk Score</th><th>Risk Level</th></tr></thead>
           <tbody id="component-body"></tbody>
         </table>
       </div>
@@ -542,8 +567,9 @@ th,td{outline:none}
 
     <div id="maint-section" class="section">
       <div class="section-head">
-        <h2>Maintenance Type &amp; Error Leading Indicator</h2>
+        <h2>Maintenance Type &amp; Error Leading Indicator <button type="button" class="info-btn" aria-expanded="false" aria-label="Info metodologi maintenance type" onclick="toggleInfo(this)">&#9432;</button></h2>
         <span class="hint">Rasio scheduled vs unscheduled &mdash; error codes sebelum failure (prediktor dini)</span>
+        <div class="info-panel">Rasio maintenance terjadwal vs tidak terjadwal dari data maintenance; error codes yang sering muncul sebelum failure adalah prediktor dini.</div>
       </div>
       <div class="table-wrap" style="margin-bottom:14px">
         <table id="maint-table" aria-label="Maintenance type ratio">
@@ -579,6 +605,20 @@ var fmt = function(n, d){
   return Number(n).toFixed(d===undefined?1:d);
 };
 
+// ---- info (ⓘ) methodology toggle ----
+function toggleInfo(btn){
+  var panel = btn.parentNode.parentNode.querySelector(".info-panel");
+  if(!panel) return;
+  var open = panel.classList.toggle("open");
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+document.addEventListener("click", function(e){
+  if(!e.target.classList || !e.target.classList.contains("info-btn")){
+    document.querySelectorAll(".info-panel.open").forEach(function(p){ p.classList.remove("open");
+      var b = p.parentNode.querySelector(".info-btn"); if(b) b.setAttribute("aria-expanded","false"); });
+  }
+});
+
 function emptyRow(cols){
   var tr=document.createElement("tr");
   var td=document.createElement("td");
@@ -587,7 +627,9 @@ function emptyRow(cols){
   td.style.padding="32px 16px";
   td.style.color="var(--text-mid)";
   td.style.fontSize="13px";
-  td.textContent="Tidak ada data untuk filter ini — reset filter untuk lihat semua";
+  td.style.cursor="pointer";
+  td.textContent="Tidak ada data untuk filter ini — klik reset filter";
+  td.onclick=function(){var cb=document.querySelector("[data-filter-reset]");if(cb)cb.click();};
   tr.appendChild(td);
   return tr;
 }
@@ -609,14 +651,60 @@ function el(tag, attrs, children){
 
 // ---- STATS ----
 try{
+  // Needs Action banner (P0-1)
+  var needsActionBanner = document.getElementById('needs-action');
+  if(needsActionBanner){
+    var s = DATA.summary;
+    var urgentCount = s.urgent_count || 0;
+    var atRiskCount = s.at_risk_count || 0;
+    
+    // Show banner only if there are actions needed
+    if(urgentCount > 0 || atRiskCount > 0){
+      needsActionBanner.style.display = 'flex';
+      needsActionBanner.innerHTML = '';
+      
+      // Card 1: Urgent machines
+      if(urgentCount > 0){
+        var card1 = document.createElement('a');
+        card1.href = '#priority-section';
+        card1.className = 'action-card urgent';
+        card1.innerHTML = `
+          <div class="icon">⚠️</div>
+          <div>
+            <div class="title">${urgentCount} mesin URGENT</div>
+            <div class="sub">lihat prioritas</div>
+          </div>
+          <div class="arrow">→</div>
+        `;
+        needsActionBanner.appendChild(card1);
+      }
+      
+      // Card 2: At-risk machines
+      if(atRiskCount > 0){
+        var card2 = document.createElement('a');
+        card2.href = '#components-section';
+        card2.className = 'action-card warn';
+        card2.innerHTML = `
+          <div class="icon">📊</div>
+          <div>
+            <div class="title">${atRiskCount} mesin at-risk telemetry</div>
+            <div class="sub">lihat komponen</div>
+          </div>
+          <div class="arrow">→</div>
+        `;
+        needsActionBanner.appendChild(card2);
+      }
+    }
+  }
+  
   var s = DATA.summary;
   var cards = [
     {label:"Total Mesin", value:s.total_machines, cls:"", sub:"URGENT "+s.urgent_count+" \u00b7 HIGH "+s.high_count},
-    {label:"Avg MTBF", value:fmt(s.avg_mtbf)+" hr", cls:"tone-teal", sub:"Rata-rata antar failure"},
-    {label:"Avg MTTR", value:fmt(s.avg_mttr)+" hr", cls:"", sub:"Rata-rata durasi repair"},
-    {label:"Availability", value:fmt(s.avg_availability)+"%", cls:"tone-info", sub:"Uptime keseluruhan"},
-    {label:"Total Biaya", value:fmt(s.total_maintenance_cost)+" Jt", cls:"tone-amber", sub:"Replace "+s.replace_count+" \u00b7 Unsch "+fmt(s.unscheduled_pct,0)+"%"},
-    {label:"Total Failures", value:s.total_failures, cls:"", sub:"Repair "+s.repair_count+" \u00b7 Err coverage "+fmt(s.error_coverage*100,0)+"%"}
+    {label:"Rata MTBF", value:fmt(s.avg_mtbf,0)+" hr", cls:"tone-teal", sub:"Rata-rata antar failure"},
+    {label:"Rata MTTR", value:fmt(s.avg_mttr,1)+" hr", cls:"", sub:"Rata-rata durasi repair"},
+    {label:"Ketersediaan", value:fmt(s.avg_availability)+"%", cls:"tone-info", sub:"Uptime keseluruhan"},
+    {label:"Biaya Total", value:fmt(s.total_maintenance_cost,2)+" Jt", cls:"tone-amber", sub:"Ganti "+s.replace_count+"\u00b7 Tak Terjadwal "+fmt(s.unscheduled_pct,0)+"%"+(s.replace_count===0?"\u00b7 0 mesin direkomendasikan ganti saat ini":"")},
+    {label:"Total Gagal", value:s.total_failures, cls:"", sub:"Perbaiki "+s.repair_count+"\u00b7 Err coverage "+fmt(s.error_coverage*100,0)+"%"}
   ];
   var wrap = document.getElementById("stats");
   cards.forEach(function(c){
@@ -631,26 +719,32 @@ try{
 
 // ---- PRIORITY TABLE ----
 var currentPriorityFilter = "ALL";
+var _priorityFilterEl = null;
 try{
-  var pillsWrap = document.getElementById("priority-pills");
-  pillsWrap.setAttribute("role","radiogroup");
-  pillsWrap.setAttribute("aria-label","Filter prioritas");
-  var pillData = [
-    {key:"ALL",label:"ALL",cls:"pill-all",count:DATA.priority.length},
-    {key:"URGENT",label:"URGENT",cls:"pill-urgent",count:DATA.summary.urgent_count},
-    {key:"HIGH",label:"HIGH",cls:"pill-high",count:DATA.summary.high_count},
-    {key:"MEDIUM",label:"MEDIUM",cls:"pill-medium",count:DATA.priority.filter(function(r){return r.category==="MEDIUM"}).length},
-    {key:"LOW",label:"LOW",cls:"pill-low",count:DATA.priority.filter(function(r){return r.category==="LOW"}).length}
-  ];
+  _priorityFilterEl = document.getElementById("priority-pills");
+  _priorityFilterEl.setAttribute("role","radiogroup");
+  _priorityFilterEl.setAttribute("aria-label","Filter prioritas");
   function renderPriorityPills(){
-    pillsWrap.innerHTML="";
+    _priorityFilterEl.innerHTML="";
+    var pillData = [
+      {key:"ALL",label:"ALL",cls:"pill-all",count:DATA.priority.length},
+      {key:"URGENT",label:"URGENT",cls:"pill-urgent",count:DATA.summary.urgent_count},
+      {key:"HIGH",label:"HIGH",cls:"pill-high",count:DATA.summary.high_count},
+      {key:"MEDIUM",label:"MEDIUM",cls:"pill-medium",count:DATA.priority.filter(function(r){return r.category==="MEDIUM"}).length},
+      {key:"LOW",label:"LOW",cls:"pill-low",count:DATA.priority.filter(function(r){return r.category==="LOW"}).length}
+    ];
     pillData.forEach(function(p){
       var isActive = currentPriorityFilter===p.key;
       var pill = el("button",{type:"button",className:"pill "+p.cls+(isActive?" active":""),
         textContent:p.label+" ("+p.count+")","aria-pressed":String(isActive)});
       pill.onclick=function(){currentPriorityFilter=p.key;renderPriorityPills();renderPriorityTable();};
-      pillsWrap.appendChild(pill);
+      _priorityFilterEl.appendChild(pill);
     });
+    if(currentPriorityFilter!=="ALL"){
+      var resetBtn = el("button",{type:"button",className:"reset-btn",textContent:"\u2715 Reset"});
+      resetBtn.onclick=function(){currentPriorityFilter="ALL";renderPriorityPills();renderPriorityTable();};
+      _priorityFilterEl.appendChild(resetBtn);
+    }
   }
   function badgeClass(cat){
     var map={URGENT:"badge-urgent",HIGH:"badge-high",MEDIUM:"badge-medium",LOW:"badge-low"};
@@ -660,30 +754,30 @@ try{
     var rows = currentPriorityFilter==="ALL"?DATA.priority:DATA.priority.filter(function(r){return r.category===currentPriorityFilter});
     var tbody = document.getElementById("priority-body");
     tbody.innerHTML="";
-    if(rows.length===0){tbody.appendChild(emptyRow(11));return;}
+    if(rows.length===0){var er=emptyRow(11);er.querySelector("td").onclick=function(){currentPriorityFilter="ALL";renderPriorityPills();renderPriorityTable();};tbody.appendChild(er);return;}
     rows.forEach(function(r){
       var tr = document.createElement("tr");
       tr.appendChild(el("td",{textContent:String(r.machineID)}));
       tr.appendChild(el("td",{textContent:r.model}));
       tr.appendChild(el("td",{textContent:String(r.age)}));
-      tr.appendChild(el("td",{textContent:fmt(r.mtbf_hours)}));
-      tr.appendChild(el("td",{textContent:fmt(r.mttr_hours)}));
+      tr.appendChild(el("td",{textContent:fmt(r.mtbf_hours,1)}));
+      tr.appendChild(el("td",{textContent:fmt(r.mttr_hours,1)}));
       tr.appendChild(el("td",{textContent:fmt(r.availability_pct)}));
       tr.appendChild(el("td",{textContent:fmt(r.failures_per_month,2)}));
 
       var _slope = costSlopeMap[r.machineID];
-      var _trend = "—";
+      var _trend = "\u2014";
       var _tcls = "";
       if(_slope!=null && isFinite(_slope)){
-        if(_slope > 1){_trend = "▲ up"; _tcls="t-up";}
-        else if(_slope < -1){_trend = "▼ down"; _tcls="t-down";}
-        else {_trend = "→ flat"; _tcls="t-flat";}
+        if(_slope > 1){_trend = "\u25b2 naik"; _tcls="t-up";}
+        else if(_slope < -1){_trend = "\u25bc turun"; _tcls="t-down";}
+        else {_trend = "\u2192 flat"; _tcls="t-flat";}
       }
       var _ttd = document.createElement("td");
       var _tspan = el("span",{className:"trend "+_tcls, textContent:_trend});
       _ttd.appendChild(_tspan);
       tr.appendChild(_ttd);
-      tr.appendChild(el("td",{textContent:fmt(r.total_cost_Jt)}));
+      tr.appendChild(el("td",{textContent:fmt(r.total_cost_Jt,2)}));
       tr.appendChild(el("td",{textContent:fmt(r.score,1)}));
       var catBadge = el("span",{className:"badge "+badgeClass(r.category),textContent:r.category});
       var td5 = document.createElement("td");
@@ -748,12 +842,13 @@ try{
   lcChipWrap.setAttribute("aria-label","Filter lifecycle stage");
   function lcCount(s){ return DATA.lifecycle.filter(function(r){return r.stage===s;}).length; }
   var lcStages = ["ALL","NEW","STABLE","AGING","DEGRADING","CRITICAL","END_OF_LIFE"];
+  var stageLabel = {NEW:"Baru",STABLE:"Stabil",AGING:"Menua",DEGRADING:"Degradasi",CRITICAL:"Kritis",END_OF_LIFE:"Akhir Umur"};
   function renderLifecycleChips(){
     lcChipWrap.innerHTML="";
     lcStages.forEach(function(c){
       var cnt = c==="ALL" ? DATA.lifecycle.length : lcCount(c);
       var isActive = currentLifecycleFilter===c;
-      var chip = el("button",{type:"button",className:"chip"+(isActive?" active":""),textContent:c+" ("+cnt+")",
+      var chip = el("button",{type:"button",className:"chip"+(isActive?" active":""),textContent:(c==="ALL"?c:stageLabel[c]||c)+" ("+cnt+")",
         "aria-pressed":String(isActive)});
       chip.onclick=function(){currentLifecycleFilter=c;renderLifecycleChips();renderLifecycleTable();};
       lcChipWrap.appendChild(chip);
@@ -769,7 +864,7 @@ try{
       tr.appendChild(el("td",{textContent:String(r.machineID)}));
       tr.appendChild(el("td",{textContent:r.model}));
       tr.appendChild(el("td",{textContent:String(r.age)}));
-      var badge = el("span",{className:"badge "+lcBadgeClass(r.stage),textContent:r.stage});
+      var badge = el("span",{className:"badge "+lcBadgeClass(r.stage),textContent:stageLabel[r.stage]||r.stage});
       var td=document.createElement("td");td.appendChild(badge);tr.appendChild(td);
       tbody.appendChild(tr);
     });
@@ -785,7 +880,7 @@ try{
     var tr = document.createElement("tr");
     tr.appendChild(el("td",{textContent:String(r.machineID)}));
     tr.appendChild(el("td",{textContent:r.model}));
-    var sBadge = el("span",{className:"badge "+lcBadgeClass(r.stage),textContent:r.stage});
+    var sBadge = el("span",{className:"badge "+lcBadgeClass(r.stage),textContent:(typeof stageLabel!=="undefined"?stageLabel[r.stage]:r.stage)||r.stage});
     var td1=document.createElement("td");td1.appendChild(sBadge);tr.appendChild(td1);
     tr.appendChild(el("td",{textContent:String(r.remaining_life_months)}));
     tr.appendChild(el("td",{textContent:r.urgency}));
@@ -795,18 +890,34 @@ try{
 
 // ---- CHARTS ----
 try{
-  if(typeof Chart==="undefined"){
-    document.querySelectorAll(".chart-card canvas").forEach(function(c){
-      var p=document.createElement("p");p.className="chart-fallback";
-      p.textContent="Chart.js not loaded. Check internet connection.";
-      c.parentNode.appendChild(p);c.style.display="none";
-    });
-  }else{
+if(typeof Chart==="undefined"){
+     document.querySelectorAll(".chart-card canvas").forEach(function(c){
+       var p=document.createElement("p");p.className="chart-fallback";
+       p.textContent="Chart.js tidak dimuat. Periksa koneksi internet.";
+       c.parentNode.appendChild(p);c.style.display="none";
+     });
+   }else{
     var chartOpts={responsive:true,plugins:{legend:{labels:{color:"#576178",usePointStyle:true,boxWidth:8}}}};
     var scaleOpts={ticks:{color:"#576178"},grid:{color:"#e6eaf4"}};
 
     // Bar: top 10 priority
     var top10 = DATA.priority.slice(0,10);
+    var thresholdPlugin = {
+      id:"threshold75",
+      afterDraw:function(chart){
+        var y = chart.scales.y;
+        if(!y) return;
+        var y75 = y.getPixelForValue(75);
+        var ctx = chart.ctx;
+        ctx.save();
+        ctx.strokeStyle="#dc2626"; ctx.setLineDash([6,4]); ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.moveTo(chart.chartArea.left, y75); ctx.lineTo(chart.chartArea.right, y75); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle="#dc2626"; ctx.font="11px system-ui"; ctx.textAlign="left";
+        ctx.fillText("Ambang URGENT (75)", chart.chartArea.left+4, y75-5);
+        ctx.restore();
+      }
+    };
     new Chart(document.getElementById("chart-priority"),{
       type:"bar",
       data:{
@@ -820,7 +931,25 @@ try{
           borderRadius:4
         }]
       },
-      options:{...chartOpts,scales:{x:scaleOpts,y:{...scaleOpts,beginAtZero:true}}}
+      options:{
+        ...chartOpts,scales:{x:scaleOpts,y:{...scaleOpts,beginAtZero:true}},
+        plugins:{legend:{...chartOpts.plugins.legend}},
+        onClick:function(evt, items){
+          if(!items || !items.length) return;
+          var i = items[0].index;
+          var mid = top10[i].machineID;
+          var target = document.getElementById("priority-section");
+          if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+          var rows = document.querySelectorAll("#priority-body tr");
+          rows.forEach(function(tr){
+            var first = tr.querySelector("td");
+            if(first && first.textContent===String(mid)){ tr.style.outline="2px solid var(--brand)"; tr.style.outlineOffset="-2px";
+              setTimeout(function(){ tr.style.outline=""; },2200);
+            }
+          });
+        }
+      },
+      plugins:[thresholdPlugin]
     });
 
     // Pie: lifecycle
@@ -831,11 +960,21 @@ try{
     new Chart(document.getElementById("chart-lifecycle"),{
       type:"pie",
       data:{
-        labels:lcLabels,
+        labels:lcLabels.map(function(l){return (typeof stageLabel!=="undefined"&&stageLabel[l])?stageLabel[l]:l; }),
         datasets:[{data:lcLabels.map(function(l){return lcCounts[l]}),
           backgroundColor:lcLabels.map(function(l){return lcColors[l]||"#4f46e5"})}]
       },
-      options:{...chartOpts}
+      options:{...chartOpts},
+      plugins:[{
+        id:"lifecycleClick",
+        onClick:function(evt, items){
+          if(!items || !items.length) return;
+          var lab = lcLabels[items[0].index];
+          var target = document.getElementById("lifecycle-section");
+          if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+          if(lab){ currentLifecycleFilter=lab; renderLifecycleChips(); renderLifecycleTable(); }
+        }
+      }]
     });
 
     // Doughnut: decision
@@ -850,7 +989,17 @@ try{
         datasets:[{data:dcLabels.map(function(l){return dcCounts[l]}),
           backgroundColor:dcLabels.map(function(l){return dcColors[l]||"#4f46e5"})}]
       },
-      options:{...chartOpts}
+      options:{...chartOpts},
+      plugins:[{
+        id:"decisionClick",
+        onClick:function(evt, items){
+          if(!items || !items.length) return;
+          var lab = dcLabels[items[0].index];
+          var target = document.getElementById("decision-section");
+          if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+          if(lab && typeof currentDecisionFilter!=="undefined"){ currentDecisionFilter=lab; renderDecisionChips(); renderDecisionTable(); }
+        }
+      }]
     });
   }
 }catch(e){console.error("charts",e)}
